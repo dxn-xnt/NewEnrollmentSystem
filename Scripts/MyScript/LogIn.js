@@ -1,22 +1,21 @@
 $().ready(function () {
-    $('#btn').click(function (e) {
-        e.preventDefault(); // Prevent form submission if needed
-        var idNumber = parseInt($('#idNumber').val(), 10);
-        
+    $('#submitButton').click(function (e) {
         const student = {
-            Stud_Code: idNumber,
-            Stud_Password: $('#password').val()
+            Id: parseInt($('#LoginStudentID').val()),
+            Password: $('#LoginPassword').val()
         };
 
         const token = $('input[name="__RequestVerificationToken"]').val();
 
         console.log(student);
+        
         $.ajax({
             type: 'POST',
-            url: '/Auth/LoginStudent',
+            url: '/Account/Student/LogIn',
             contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
             data: $.param(student) + "&__RequestVerificationToken=" + encodeURIComponent(token),
             success: function (response) {
+                console.log(response);
                 if (response.success) {
                     Swal.fire({
                         icon: 'success',
@@ -24,8 +23,7 @@ $().ready(function () {
                         text: response.message,
                         confirmButtonText: 'Continue',
                     }).then(() => {
-                        localStorage.setItem('studentData', JSON.stringify(response.data));
-                        window.location.href = '/Main/Home';
+                        window.location.href = response.redirectUrl;
                     });
                 } else {
                     Swal.fire({

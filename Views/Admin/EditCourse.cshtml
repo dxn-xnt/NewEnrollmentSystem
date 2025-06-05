@@ -1,0 +1,152 @@
+@{
+ViewData["Title"] = "Edit Program Course";
+Layout = "~/Views/Shared/_Layout.cshtml"; // Assuming you have a shared layout
+}
+
+<div class="container content-section">
+    <h1 class="mb-4">Edit Program Course</h1>
+    <p class="lead">Modify the details of the selected course.</p>
+    <div class="form-card">
+        <form id="editCourseForm">
+            <div class="mb-3">
+                <label for="courseCategory" class="form-label">Course Category:</label>
+                <select class="form-select" id="courseCategory" required>
+                    <option value="" disabled>Select Category...</option>
+                    <option value="General Education - Core Courses (GEC)">General Education - Core Courses (GEC)</option>
+                    <option value="General Education - Mandated Course, Rizal (GEC)">General Education - Mandated Course, Rizal (GEC)</option>
+                    <option value="General Education - Elective Courses (GEE)">General Education - Elective Courses (GEE)</option>
+                    <option value="Common Courses (CC)">Common Courses (CC)</option>
+                    <option value="Professional Courses (PC)">Professional Courses (PC)</option>
+                    <option value="On-the-Job Training (PC)">On-the-Job Training (PC)</option>
+                    <option value="Professional Electives (P Elec)">Professional Electives (P Elec)</option>
+                    <option value="Professional/Domain Courses (AP)">Professional/Domain Courses (AP)</option>
+                    <option value="Physical Education (PE)">Physical Education (PE)</option>
+                    <option value="National Service Training Program (NSTP)">National Service Training Program (NSTP)</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="courseCode" class="form-label">Course Code:</label>
+                <input type="text" class="form-control" id="courseCode" placeholder="e.g., IT101" readonly required>
+                <small class="form-text text-muted">Course Code cannot be changed.</small>
+            </div>
+            <div class="mb-3">
+                <label for="descriptiveTitle" class="form-label">Descriptive Title:</label>
+                <input type="text" class="form-control" id="descriptiveTitle" placeholder="e.g., Introduction to Computing" required>
+            </div>
+            <div class="mb-3">
+                <label for="prerequisite" class="form-label">Co-/Prerequisite:</label>
+                <select class="form-select" id="prerequisite">
+                    <option value="None">None</option>
+                    <option value="IT101">IT101 - Introduction to Computing</option>
+                    <option value="CS102">CS102 - Object-Oriented Programming</option>
+                    <option value="ACCTG101">ACCTG101 - Fundamentals of Accounting</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="numberOfUnits" class="form-label">No. of Units:</label>
+                <input type="number" class="form-control" id="numberOfUnits" min="1" max="6" required>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-md-6">
+                    <label for="lecUnits" class="form-label">Lecture Units:</label>
+                    <input type="number" class="form-control" id="lecUnits" min="0" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="labUnits" class="form-label">Laboratory Units:</label>
+                    <input type="number" class="form-control" id="labUnits" min="0" required>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="button" class="btn btn-secondary ms-2" onclick="history.back()">Cancel</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const programData = {
+            "BSIT": [
+                { code: "IT101", title: "Introduction to Computing", prerequisite: "None", units: 3, lec: 3, lab: 0, year: "1st Year", semester: "1st Semester", category: "Common Courses (CC)" },
+                { code: "IT102", title: "Programming Logic and Design", prerequisite: "None", units: 3, lec: 2, lab: 1, year: "1st Year", semester: "1st Semester", category: "Professional Courses (PC)" },
+                { code: "GE101", title: "Understanding the Self", prerequisite: "None", units: 3, lec: 3, lab: 0, year: "1st Year", semester: "1st Semester", category: "General Education - Core Courses (GEC)" },
+                { code: "IT103", title: "Web Development Fundamentals", prerequisite: "IT102", units: 3, lec: 2, lab: 1, year: "1st Year", semester: "2nd Semester", category: "Professional Courses (PC)" },
+                { code: "NET101", title: "Networking Essentials", prerequisite: "None", units: 3, lec: 2, lab: 1, year: "1st Year", semester: "2nd Semester", category: "Professional Courses (PC)" },
+                { code: "DATA201", title: "Database Management Systems", prerequisite: "IT102", units: 3, lec: 2, lab: 1, year: "2nd Year", semester: "1st Semester", category: "Professional Courses (PC)" },
+                { code: "WEB202", title: "Advanced Web Development", prerequisite: "IT103", units: 3, lec: 2, lab: 1, year: "2nd Year", semester: "2nd Semester", category: "Professional Courses (PC)" },
+                { code: "CAPSTONE", title: "Capstone Project", prerequisite: "All Major Subjects", units: 3, lec: 1, lab: 2, year: "4th Year", semester: "1st Semester", category: "Professional Courses (PC)" }
+            ],
+            "BSCS": [
+                { code: "CS101", title: "Discrete Structures", prerequisite: "None", units: 3, lec: 3, lab: 0, year: "1st Year", semester: "1st Semester", category: "Common Courses (CC)" },
+                { code: "CS102", title: "Object-Oriented Programming", prerequisite: "CS101", units: 3, lec: 2, lab: 1, year: "1st Year", semester: "2nd Semester", category: "Professional Courses (PC)" },
+                { code: "ALGO201", title: "Analysis of Algorithms", prerequisite: "CS102", units: 3, lec: 3, lab: 0, year: "2nd Year", semester: "1st Semester", category: "Professional Courses (PC)" },
+                { code: "AI301", title: "Artificial Intelligence", prerequisite: "ALGO201", units: 3, lec: 2, lab: 1, year: "3rd Year", semester: "1st Semester", category: "Professional Electives (P Elec)" }
+            ],
+            "BSA": [
+                { code: "ACCTG101", title: "Fundamentals of Accounting", prerequisite: "None", units: 3, lec: 3, lab: 0, year: "1st Year", semester: "1st Semester", category: "Professional Courses (PC)" },
+                { code: "ACCTG102", title: "Partnership and Corporation", prerequisite: "ACCTG101", units: 3, lec: 3, lab: 0, year: "1st Year", semester: "2nd Semester", category: "Professional Courses (PC)" },
+                { code: "AUDIT201", title: "Auditing Theory", prerequisite: "ACCTG102", units: 3, lec: 3, lab: 0, year: "2nd Year", semester: "1st Semester", category: "Professional Courses (PC)" }
+            ]
+        };
+
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        const courseCodeParam = getUrlParameter('courseCode');
+
+        const courseCategorySelect = document.getElementById('courseCategory');
+        const courseCodeInput = document.getElementById('courseCode');
+        const descriptiveTitleInput = document.getElementById('descriptiveTitle');
+        const prerequisiteSelect = document.getElementById('prerequisite');
+        const numberOfUnitsInput = document.getElementById('numberOfUnits');
+        const lecUnitsInput = document.getElementById('lecUnits');
+        const labUnitsInput = document.getElementById('labUnits');
+
+        if (courseCodeParam) {
+            let courseToEdit = null;
+            for (const programKey in programData) {
+                courseToEdit = programData[programKey].find(course => course.code === courseCodeParam);
+                if (courseToEdit) break;
+            }
+
+            if (courseToEdit) {
+                courseCategorySelect.value = courseToEdit.category;
+                courseCodeInput.value = courseToEdit.code;
+                descriptiveTitleInput.value = courseToEdit.title;
+                prerequisiteSelect.value = courseToEdit.prerequisite;
+                numberOfUnitsInput.value = courseToEdit.units;
+                lecUnitsInput.value = courseToEdit.lec;
+                labUnitsInput.value = courseToEdit.lab;
+
+                let prereqExists = Array.from(prerequisiteSelect.options).some(option => option.value === courseToEdit.prerequisite);
+                if (!prereqExists) {
+                    prerequisiteSelect.value = "None";
+                }
+            } else {
+                alert('Course not found for editing.');
+            }
+        } else {
+            alert('No course code provided for editing.');
+        }
+
+        document.getElementById('editCourseForm').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const updatedCourseData = {
+                courseCategory: courseCategorySelect.value,
+                courseCode: courseCodeInput.value,
+                descriptiveTitle: descriptiveTitleInput.value,
+                prerequisite: prerequisiteSelect.value,
+                numberOfUnits: numberOfUnitsInput.value,
+                lecUnits: lecUnitsInput.value,
+                labUnits: labUnitsInput.value
+            };
+            console.log('Updated Course Data:', updatedCourseData);
+            alert(`Course ${updatedCourseData.courseCode} updated (frontend simulation)!`);
+        });
+    });
+</script>
+}

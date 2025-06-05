@@ -1,0 +1,178 @@
+@{
+    ViewBag.Title = "View Grades";
+    Layout = "~/Views/Shared/StudentHeader.cshtml";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>View Grades - Enrollment System</title>
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .content-section {
+            padding: 30px;
+            flex-grow: 1;
+        }
+        /* Styles for the grades display area */
+        #gradesDisplayArea {
+            display: none; /* Hidden by default */
+        }
+        .info-display-box {
+            background-color: #e9ecef; /* Light grey background */
+            padding: 15px;
+            border-radius: .3rem;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #343a40; /* Darker text */
+        }
+        /* Style for individual lines within the consolidated info box */
+        .info-display-box p {
+            margin-bottom: 5px; /* Smaller margin between lines */
+        }
+        .info-display-box p:last-child {
+            margin-bottom: 0; /* No margin below the last line */
+        }
+    </style>
+</head>
+<body>
+<div class="container content-section">
+    <h1 class="mb-4">Your Academic Grades</h1>
+    <p class="lead">Select the academic year and semester to view your grades for your current course.</p>
+
+    <div class="info-display-box">
+        <p>Student ID: <span id="studentIdDisplay">2023-0001</span></p>
+        <p>Student Name: <span id="studentNameDisplay">Juan Dela Cruz</span></p>
+        <p>Current Course: <span id="currentCourseDisplay">Bachelor of Science in Information Technology</span></p>
+    </div>
+
+    <div class="card mt-4 mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Select Term</h5>
+            <div class="row g-3 align-items-end">
+                <div class="col-md-4">
+                    <label for="yearSelect" class="form-label">Select Year</label>
+                    <select class="form-select" id="yearSelect">
+                        <option value="" selected disabled>Choose Year...</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label for="semesterSelect" class="form-label">Select Semester</label>
+                    <select class="form-select" id="semesterSelect">
+                        <option value="" selected disabled>Choose Semester...</option>
+                        <option value="1st Semester">1st Semester</option>
+                        <option value="2nd Semester">2nd Semester</option>
+                        <option value="Summer">Summer</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <button type="button" class="btn btn-primary w-100" id="viewGradesBtn">View Grades</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="gradesDisplayArea">
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title" id="gradesTermTitle"></h5>
+                <table class="table table-bordered table-striped mt-3">
+                    <thead>
+                    <tr>
+                        <th>MIS CODE</th>
+                        <th>COURSE CODE</th>
+                        <th>DESCRIPTIVE TITLE</th>
+                        <th>Grade</th>
+                        <th>Professor</th>
+                    </tr>
+                    </thead>
+                    <tbody id="gradesTableBody">
+                    <tr>
+                        <td>MIS-001</td>
+                        <td>IT 100</td>
+                        <td>Computer Fundamentals</td>
+                        <td>1.75</td>
+                        <td>Prof. Dela Cruz</td>
+                    </tr>
+                    <tr>
+                        <td>MIS-002</td>
+                        <td>GE 101</td>
+                        <td>Understanding the Self</td>
+                        <td>2.00</td>
+                        <td>Dr. Reyes</td>
+                    </tr>
+                    <tr>
+                        <td>MIS-003</td>
+                        <td>MATH 101</td>
+                        <td>College Algebra</td>
+                        <td>2.25</td>
+                        <td>Prof. Lim</td>
+                    </tr>
+                    </tbody>
+                </table>
+                <p class="card-text mt-4"><strong>Total Subjects:</strong> <span id="totalSubjectsDisplay">3</span></p>
+                <h5 class="card-title" id="overallGpaDisplay">Overall GPA: 3.75</h5>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- Grades Display Logic ---
+        const studentIdDisplay = document.getElementById('studentIdDisplay');
+        const studentNameDisplay = document.getElementById('studentNameDisplay');
+        const currentCourseDisplay = document.getElementById('currentCourseDisplay');
+        const yearSelect = document.getElementById('yearSelect');
+        const semesterSelect = document.getElementById('semesterSelect');
+        const viewGradesBtn = document.getElementById('viewGradesBtn');
+        const gradesDisplayArea = document.getElementById('gradesDisplayArea');
+        const gradesTermTitle = document.getElementById('gradesTermTitle');
+        const gradesTableBody = document.getElementById('gradesTableBody');
+        const overallGpaDisplay = document.getElementById('overallGpaDisplay');
+        const totalSubjectsDisplay = document.getElementById('totalSubjectsDisplay');
+
+        // You can set these dynamically from a backend or user session
+        studentIdDisplay.textContent = "2023-0001"; // Example static data
+        studentNameDisplay.textContent = "Juan Dela Cruz"; // Example static data
+        currentCourseDisplay.textContent = "Bachelor of Science in Information Technology"; // Example static data
+
+        viewGradesBtn.addEventListener('click', function() {
+            const selectedYear = yearSelect.value;
+            const selectedSemester = semesterSelect.value;
+            const displayedCourse = currentCourseDisplay.textContent;
+
+            if (selectedYear === "" || selectedSemester === "") {
+                alert('Please select Year and Semester.');
+                return;
+            }
+
+            gradesTermTitle.textContent = `${displayedCourse} - ${selectedYear} : ${selectedSemester} Grades`;
+
+            const numSubjects = gradesTableBody.children.length;
+            totalSubjectsDisplay.textContent = numSubjects;
+            // In a real application, calculate GPA based on fetched grades
+            overallGpaDisplay.textContent = 'Overall GPA: 3.75';
+
+            gradesDisplayArea.style.display = 'block';
+        });
+    });
+</script>
+</body>
+</html>

@@ -1,8 +1,9 @@
-﻿namespace EnrollmentSystem.Models;
-
-public class Room
+namespace Enrollment_System.Models
 {
-    public int room_id { get; set; }
-    public string room_code { get; set; }
-    public string prog_code { get; set; }
+    public class Room
+    {
+        public int Id { get; set; }
+        public string Code { get; set; }
+        public string ProgramCode { get; set; }
+    }
 }

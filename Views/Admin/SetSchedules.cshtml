@@ -1,620 +1,1531 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <title>Schedule Management</title>
+@model IEnumerable<Enrollment_System.Models.Course>
+@{
+    ViewBag.Title = "Schedule Management";
+    Layout = "~/Views/Shared/AdminHeader.cshtml";
+}
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css">
     <style>
-        /* Basic Reset */
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
+        html {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-
+        
         body {
-            background-color: #f9f9f9;
-            padding: 20px;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: auto;
-        }
-
-        .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-
-        .header {
+            min-height: 100vh;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
+            flex-direction: column;
+            background-color:#f5f7fa;
+            font-family: 'Montserrat', sans-serif;
+        }
+        
+        .content-section {
+            padding: 30px;
+            flex-grow: 1;
+        }
+
+        .schedule-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .filter-section {
             margin-bottom: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
         }
 
-        .btn {
-            background: #007BFF;
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s ease;
-        }
-
-        .btn:hover {
-            background: #0056b3;
-        }
-
-        table {
+        .schedule-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
         }
 
-        th, td {
+        .schedule-table th,
+        .schedule-table td {
+            border: 1px solid #dee2e6;
             padding: 12px;
-            border: 1px solid #ddd;
             text-align: left;
         }
 
-        th {
-            background: #f2f2f2;
-        }
-
-        tr:nth-child(even) {
-            background: #fafafa;
-        }
-
-        .actions button {
-            margin-right: 5px;
-            background: #28a745;
-        }
-
-        .actions button:hover {
-            background: #1e7e34;
-        }
-
-        .actions button:last-child {
-            background: #dc3545;
-        }
-
-        .actions button:last-child:hover {
-            background: #c82333;
-        }
-
-        /* Modal Styles */
-        .modal {
-            position: fixed;
+        .schedule-table th {
+            background-color: #273F4F;
+            color: white;
+            position: sticky;
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
+            font-weight: 500;
         }
-
-        .modal.active {
-            display: flex;
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1100;
         }
-
-        .modal-content {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            width: 100%;
-            max-width: 600px;
-            position: relative;
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 10px;
-        }
-
-        .modal-title {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .close-btn {
+        .badge-timeslot {
             cursor: pointer;
-            font-size: 24px;
-            font-weight: bold;
-            color: #888;
+            background-color:  #FE7743;
+            color: #212529;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 3px;
         }
 
-        .close-btn:hover {
-            color: #333;
+        .badge-timeslot:hover {
+            opacity: 0.9;
         }
 
-        .form-group {
-            margin-bottom: 15px;
+        #timeslotDisplay {
+            min-height: 100px;
         }
 
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        select,
-        input[type="time"],
-        input[type="text"] {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-
-        .day-time-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-
-        .remove-day-time {
-            color: red;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
-        .footer-buttons {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
+        .hours-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
             margin-top: 10px;
         }
-
-        .footer-buttons button {
-            padding: 8px 15px;
+        
+        .action-buttons .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+            border-radius: 3px;
         }
-
-        /* Filter Section */
-        .filters {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 20px;
+        
+        .btn {
+            border-radius: 3px !important;
+            font-weight: 500 !important;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1) !important;
+            transition: all 0.3s ease;
         }
-
-        .filters select {
-            padding: 8px;
-            border-radius: 4px;
-            border: 1px solid #ccc;
+        
+        .btn-primary {
+            background-color: #273F4F !important;
+            border-color: #273F4F !important;
         }
-
-        .filters button {
+        
+        .btn-outline-primary {
+            color: #273F4F;
+            border-color: #273F4F;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #273F4F;
+            color: white;
+        }
+        
+        .btn-danger {
+            background-color: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15) !important;
+        }
+        .modal{
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .modal-header {
+            background-color: #273F4F;
+            color: white;
+        }
+        
+        .modal-title {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 3px;
+            border: 1px solid #ced4da;
             padding: 8px 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .card-header {
+            background-color: #273F4F;
+            color: white !important;
+            font-weight: 500;
+        }
+        .card-header h6{
+            color: white !important;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: #273F4F;
+            font-weight: 600;
+        }
+        
+        .text-muted {
+            color: #6c757d !important;
         }
     </style>
-</head>
-<body>
+}
+<div class="container content-section">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Schedule Management</h1>
+        <div class="toast-container" id="notificationContainer"></div>
+    </div>
 
-<div class="container">
-    <h1>Schedule Management</h1>
-    <div class="card">
-        <div class="header">
-            <h2>Schedules</h2>
-            <button class="btn" onclick="openModal('add')">+ Add New Schedule</button>
+    <div class="schedule-container">
+        <div class="filter-section">
+            <div class="row g-3 align-items-end">
+                <!-- Section Filter -->
+                <div class="col-md-3">
+                    <label for="programFilter" class="form-label">Programs</label>
+                    <select class="form-select" id="programFilter">
+                        <option value="">Select Program</option>
+                        @{
+                            var programs = ViewBag.Programs as List<Enrollment_System.Models.Program>;
+                            if (programs != null && programs.Count > 0)
+                            {
+                                foreach (var program in programs)
+                                {
+                                    <option value="@program.Code">
+                                        @program.Title
+                                    </option>
+                                }
+                            }
+                            else
+                            {
+                                <option disabled>No programs available</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <!-- Section Filter -->
+                <div class="col-md-2">
+                    <label for="yearLevelFilter" class="form-label">Year Level</label>
+                    <select class="form-select" id="yearLevelFilter">
+                        <option value="">Select Year Level</option>
+                        @{
+                            var yearlevels = ViewBag.YearLevels as List<Enrollment_System.Models.YearLevel>;
+                            if (yearlevels != null && yearlevels.Count > 0)
+                            {
+                                foreach (var yearlevel in yearlevels)
+                                {
+                                    <option value="@yearlevel.Id">
+                                        @yearlevel.Title
+                                    </option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label for="semesterFilter" class="form-label">Semester</label>
+                    <select class="form-select" id="semesterFilter">
+                        <option value="" >Select Semester</option>
+                        @{
+                            var semesters = ViewBag.Semesters as List<Enrollment_System.Models.Semester>;
+                            if (semesters != null && semesters.Count > 0)
+                            {
+                                foreach (var semester in semesters)
+                                {
+                                    <option value="@semester.Id">
+                                        @semester.Name
+                                    </option>
+                                }
+                            }
+                        }
+                    </select>
+                </div>
+                
+                <div class="col-md-3">
+                    <label for="sectionFilter" class="form-label">Section</label>
+                    <select class="form-select" id="sectionFilter">
+                        <option value="" >All Sections</option>
+                        @{
+                            var blksections = ViewBag.BlockSections as List<Enrollment_System.Models.BlockSection>;
+                            if (blksections != null && blksections.Count > 0)
+                            {
+                                foreach (var blockSection in blksections)
+                                {
+                                    <option value="@blockSection.Code" 
+                                            data-program="@blockSection.ProgramCode"
+                                            data-year="@blockSection.YearLevel"
+                                            data-semester="@blockSection.Semester">
+                                        @blockSection.Name 
+                                    </option>
+                                }
+                            }
+                            else
+                            {
+                                <option disabled>No sections available</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <!-- Add Button -->
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#assignScheduleModal">
+                        <i class="bi bi-plus-circle"></i> Add Schedule
+                    </button>
+                </div>
+            </div>
         </div>
-
-        <!-- Filter Section -->
-        <div class="filters">
-            <select id="academicYearFilter">
-                <option value="">Year Level</option>
-                <option value="1">1st Year</option>
-                <option value="2">2nd year</option>
-                <option value="3">3rd year</option>
-                <option value="4">4th year</option>
-            </select>
-            <select id="programFilter">
-                <option value="">All Programs</option>
-                <option value="CS">Computer Science</option>
-                <option value="EE">Electrical Engineering</option>
-            </select>
-            <select id="sectionFilter">
-                <option value="">All Sections</option>
-                <option value="CS-1A">CS-1A</option>
-                <option value="CS-1B">CS-1B</option>
-                <option value="EE-1A">EE-1A</option>
-            </select>
-            <select id="semesterFilter">
-                <option value="">All Semesters</option>
-                <option value="1">First Semester</option>
-                <option value="2">Second Semester</option>
-            </select>
-            <button class="btn" id="filterButton">Apply Filters</button>
-            <button class="btn" id="resetFilterButton">Reset</button>
-        </div>
-
-        <!-- Table -->
-        <table id="scheduleTable">
-            <thead>
+        <div class="table-responsive">
+            <h6 class="fw-bold mb-1" id="scheduleDisplay">Existing Schedule</h6>
+            <table class="schedule-table">
+                <thead>
                 <tr>
-                    <th>MIS Code</th>
-                    <th>Course</th>
-                    <th>Day</th>
+                    <th>Sched ID</th>
+                    <th>Code</th>
+                    <th>Descriptive Title</th>
+                    <th>Units</th>
                     <th>Time</th>
+                    <th>Day</th>
                     <th>Room</th>
-                    <th>Professor</th>
-                    <th>Section</th>
+                    <th>Instructor</th>
+                    <th>Actions</th>
                 </tr>
-            </thead>
-            <tbody id="scheduleBody">
-                <tr data-id="MIS101">
-                    <td>MIS101</td>
-                    <td data-crs="PF101" data-days='["Monday"]' data-starts='["09:00"]' data-ends='["10:30"]'>Programming Fundamentals (PF101)</td>
-                    <td>Monday</td>
-                    <td>09:00 - 10:30</td>
-                    <td>R101</td>
-                    <td>Dr. John Doe</td>
-                    <td>CS-1A</td>
-                    <td class="actions">
-                        <button class="edit-schedule btn btn-sm btn-primary">Edit</button>
-                        <button class="delete-schedule btn btn-sm btn-danger">Delete</button>
+                </thead>
+                <tbody class="scheduleBody">
+                <!-- Default "no schedule" row that shows when empty -->
+                <tr class="no-schedule-row">
+                    <td colspan="9" class="text-center py-2 text-muted">
+                        No schedule found. Please select a section to view schedule.
                     </td>
                 </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Modal -->
-<div class="modal" id="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <div class="modal-title" id="modalTitle">Add New Schedule</div>
-            <span class="close-btn" id="closeModalBtn">&times;</span>
+                </tbody>
+            </table>
         </div>
-        <form id="scheduleForm">
-            
-            <div class="form-group">
-                <label for="course">Course</label>
-                <select id="course" required>
-                    <option value="">Select Course</option>
-                    <option value="PF101">PF101 - Programming Fundamentals</option>
-                    <option value="DS102">DS102 - Data Structures</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="course">Program</label>
-                <select id="program" required>
-                    <option value="">Select Program</option>
-                    <option value="BSIT">BSIT - Bachelor of Science in Information Technology</option>
-                    <option value="BSIS"> BSIS - Bachelor of Science in Information System</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="professor">Professor</label>
-                <select id="professor" required>
-                    <option value="">Select Professor</option>
-                    <option value="Dr. John Doe">Dr. John Doe</option>
-                    <option value="Dr. Sarah Lee">Dr. Sarah Lee</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Days & Times</label>
-                <div id="dayTimeContainer"></div>
-                <button type="button" class="btn" id="addAnotherDayTime">+ Add Another Day/Time</button>
-            </div>
-            <div class="form-group">
-                <label for="room">Room</label>
-                <select id="room" required>
-                    <option value="">Select Room</option>
-                    <option value="R101">R101</option>
-                    <option value="R102">R102</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label for="section">Section</label>
-                <select id="section" required>
-                    <option value="">Select Section</option>
-                    <option value="CS-1A">CS-1A</option>
-                    <option value="CS-1B">CS-1B</option>
-                    <option value="EE-1A">EE-1A</option>
-                </select>
-            </div>
-            <div class="footer-buttons">
-                <button type="button" class="btn" onclick="closeModal()">Cancel</button>
-                <button type="submit" class="btn">Save</button>
-            </div>
-        </form>
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> 
-<script>
-    const scheduleBody = $('#scheduleBody');
-    let editingRow = null;
-
-    // Format time to AM/PM
-    function formatTime(time) {
-        let [hours, minutes] = time.split(":");
-        hours = parseInt(hours);
-        const period = hours >= 12 ? "PM" : "AM";
-        hours = hours % 12 || 12;
-        return `${hours}:${minutes} ${period}`;
-    }
-
-    // Group by time slots
-    function formatDayTime(details) {
-        const timeGroups = {};
-        details.forEach(detail => {
-            const key = `${detail.startTime}-${detail.endTime}`;
-            if (!timeGroups[key]) timeGroups[key] = [];
-            timeGroups[key].push(detail.day);
-        });
-
-        return Object.entries(timeGroups).map(([key, days]) => {
-            const [start, end] = key.split("-");
-            return `${days.join("/")} ${formatTime(start)} - ${formatTime(end)}`;
-        }).join(" / ");
-    }
-
-    // Load sample data into table
-    function loadAndRenderSchedule() {
-        const testData = [
-            {
-                misCode: "MIS102",
-                course: "DS102",
-                courseName: "Data Structures",
-                room: "R102",
-                professor: "Dr. Sarah Lee",
-                section: "CS-1B",
-                day: "Wednesday",
-                startTime: "13:00",
-                endTime: "14:30"
-            },
-            {
-                misCode: "MIS102",
-                course: "DS102",
-                courseName: "Data Structures",
-                room: "R102",
-                professor: "Dr. Sarah Lee",
-                section: "CS-1B",
-                day: "Friday",
-                startTime: "15:00",
-                endTime: "16:30"
-            }
-        ];
-
-        const grouped = groupSchedules(testData);
-        scheduleBody.empty();
-
-        $.each(grouped, function (_, schedule) {
-            const dayTimeDisplay = formatDayTime(schedule.scheduleDetails);
-            const row = $(
-                `<tr data-id="${schedule.misCode}">
-                    <td>${schedule.misCode}</td>
-                    <td data-crs="${schedule.course}" 
-                        data-days='${JSON.stringify(schedule.scheduleDetails.map(d => d.day))}'
-                        data-starts='${JSON.stringify(schedule.scheduleDetails.map(d => d.startTime))}'
-                        data-ends='${JSON.stringify(schedule.scheduleDetails.map(d => d.endTime))}'>
-                        ${schedule.courseName} (${schedule.course})
-                    </td>
-                    <td>${schedule.scheduleDetails.map(d => d.day).join(", ")}</td>
-                    <td>${dayTimeDisplay}</td>
-                    <td>${schedule.room}</td>
-                    <td>${schedule.professor}</td>
-                    <td>${schedule.section}</td>
-                </tr>`
-            );
-            scheduleBody.append(row);
-        });
-    }
-
-    // Group schedules by misCode
-    function groupSchedules(schedules) {
-        const grouped = {};
-        schedules.forEach(schedule => {
-            if (!grouped[schedule.misCode]) {
-                grouped[schedule.misCode] = {
-                    misCode: schedule.misCode,
-                    course: schedule.course,
-                    courseName: schedule.courseName,
-                    room: schedule.room,
-                    professor: schedule.professor,
-                    section: schedule.section,
-                    scheduleDetails: []
-                };
-            }
-            grouped[schedule.misCode].scheduleDetails.push({
-                day: schedule.day,
-                startTime: schedule.startTime,
-                endTime: schedule.endTime
-            });
-        });
-        return Object.values(grouped);
-    }
-
-    // Open modal
-    function openModal(mode, row = null) {
-        $('#modal').addClass('active');
-        editingRow = row;
-        $('#modalTitle').text(mode === "add" ? "Add New Schedule" : "Edit Schedule");
-
-        $('#scheduleForm')[0].reset();
-        $('#dayTimeContainer').html(`
-            <div class="day-time-group">
-                <select class="day-select">
-                    <option value="">Day</option>
-                    <option value="Monday">Monday</option>
-                    <option value="Tuesday">Tuesday</option>
-                    <option value="Wednesday">Wednesday</option>
-                    <option value="Thursday">Thursday</option>
-                    <option value="Friday">Friday</option>
-                    <option value="Saturday">Saturday</option>
-                    <option value="Sunday">Sunday</option>
-                </select>
-                <input type="time" class="start-input" step="1800" />
-                <input type="time" class="end-input" step="1800" />
-                <span class="remove-day-time">×</span>
+<!-- Assign Schedule Modal -->
+<div class="modal fade" id="assignScheduleModal" tabindex="-1" aria-labelledby="assignScheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="assignScheduleModalLabel">Assign Schedule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-        `);
+            <div class="modal-body pt-4">
+                <form id="assignScheduleForm">
+                    <!-- Filters Row -->
+                    <div class="row g-3 mb-3">
+                        
+                        <div class="col-md-4">
+                            <label for="programModalFilter" class="form-label">Program</label>
+                            <select class="form-select" id="programModalFilter">
+                                <option value="" >Select Program</option>
+                                @{
+                                    var modalprograms = ViewBag.Programs as List<Enrollment_System.Models.Program>;
+                                    if (modalprograms != null && modalprograms.Count > 0)
+                                    {
+                                        foreach (var program in modalprograms)
+                                        {
+                                            <option value="@program.Code">@program.Title</option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <option disabled>No programs available</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="yearLevelModalFilter" class="form-label">Year Level</label>
+                            <select class="form-select" id="yearLevelModalFilter">
+                                <option value="" >Select Year Level</option>
+                                @{
+                                    var modalyearlevels = ViewBag.YearLevels as List<Enrollment_System.Models.YearLevel>;
+                                    if (modalyearlevels != null && modalyearlevels.Count > 0)
+                                    {
+                                        foreach (var yearlevel in modalyearlevels)
+                                        {
+                                            <option value="@yearlevel.Id">@yearlevel.Title</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="semesterModalFilter" class="form-label">Semester</label>
+                            <select class="form-select" id="semesterModalFilter">
+                                <option value="" >Select Semester</option>
+                                @{
+                                    var modalsemesters = ViewBag.Semesters as List<Enrollment_System.Models.Semester>;
+                                    if (modalsemesters != null && modalsemesters.Count > 0)
+                                    {
+                                        foreach (var semester in modalsemesters)
+                                        {
+                                            <option value="@semester.Id">@semester.Name</option>
+                                        }
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
 
-        if (mode === "edit" && row) {
-            const cells = $(row).find("td");
-            $('#course').val($(cells[1]).data('crs'));
-            $('#professor').val($(cells[5]).text().trim());
-            $('#room').val($(cells[4]).text().trim());
-            $('#section').val($(cells[6]).text().trim());
+                    <!-- Course and Section Row -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="modalCourseSelect" class="form-label">Course</label>
+                            <select class="form-select" id="modalCourseSelect">
+                                <option value="">All Courses</option>
+                                @{
+                                    if (Model != null)
+                                    {
+                                        foreach (var course in Model)
+                                        {
+                                            <option value="@course.Code"
+                                                    data-lec-hours="@course.LecHours"
+                                                    data-lab-hours="@course.LabHours"
+                                                    data-units="@course.Units">
+                                                @course.Code - @course.Title
+                                            </option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <option disabled>No courses available</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="modalSectionSelect" class="form-label">Section</label>
+                            <select class="form-select" id="modalSectionSelect">
+                                <option value="">All Sections</option>
+                                @{
+                                    var sections = ViewBag.BlockSections as List<Enrollment_System.Models.BlockSection>;
+                                    if (sections != null && sections.Count > 0)
+                                    {
+                                        foreach (var blockSection in sections)
+                                        {
+                                            <option value="@blockSection.Code" 
+                                                    data-program="@blockSection.ProgramCode"
+                                                    data-year="@blockSection.YearLevel"
+                                                    data-semester="@blockSection.Semester">
+                                                @blockSection.Name 
+                                            </option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <option disabled>No sections available</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <h6 class="fw-bold mb-1" id="scheduleModalDisplay">Existing Schedule</h6>
+                        <table class="schedule-table">
+                            <thead>
+                            <tr>
+                                <th>Descriptive Title</th>
+                                <th>Units</th>
+                                <th>Time</th>
+                                <th>Day</th>
+                                <th>Room</th>
+                            </tr>
+                            </thead>
+                            <tbody class="scheduleModalBody">
+                            <!-- Default "no schedule" row (shown when empty) -->
+                            <tr class="no-schedule-row">
+                                <td colspan="5" class="text-center py-2 text-muted">
+                                    No schedule found. Please select a section to view schedule.
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Instructor and Room Row -->
+                    <div class="row g-3 mt-1 mb-3">
+                        <div class="col-md-6">
+                            <label for="instructorSelect" class="form-label">Instructor</label>
+                            <select class="form-select" id="instructorSelect" required>
+                                <option value="" disabled selected>Select Instructor</option>
+                                <option value="1">TBA</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="roomSelect" class="form-label">Room</label>
+                            <select class="form-select" id="roomSelect" required>
+                                <option value="" disabled selected>Select Room</option>
+                                <option value="1">TBA</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Schedule Times Row -->
+                    <div class="row g-3 mb-3">
+                        <div class="col-12">
+                            <h6 class="fw-bold mb-2">Schedule Times</h6>
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label for="dayFilter" class="form-label">Day</label>
+                                    <select class="form-select" id="dayFilter" required>
+                                        <option value="" selected disabled>Select Day</option>
+                                        <option value="M">Monday</option>
+                                        <option value="T">Tuesday</option>
+                                        <option value="W">Wednesday</option>
+                                        <option value="Th">Thursday</option>
+                                        <option value="F">Friday</option>
+                                        <option value="Sat">Saturday</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="startTimeFilter" class="form-label">Start Time</label>
+                                    <input type="time" class="form-control" id="startTimeFilter" required
+                                           min="07:00" max="22:00">
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="endTimeFilter" class="form-label">End Time</label>
+                                    <input type="time" class="form-control" id="endTimeFilter" required
+                                           min="07:00" max="22:00">
+                                </div>
+                                <div class="col-md-3 d-flex align-items-end">
+                                    <button type="button" class="btn btn-outline-primary w-100" id="addTimeslotBtn">
+                                        <i class="bi bi-plus"></i> Add Time
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-            const days = JSON.parse($(cells[1]).data('days') || '[""]');
-            const starts = JSON.parse($(cells[1]).data('starts') || '[""]');
-            const ends = JSON.parse($(cells[1]).data('ends') || '[""]');
-            $('#dayTimeContainer').empty();
+                    <!-- Timeslot display section -->
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Current Schedule Timeslots</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="timeslotDisplay" class="timeslot-container">
+                                        <p class="text-muted mb-0">No timeslots added yet.</p>
+                                    </div>
+                                    <div class="hours-info mt-3" id="hoursInfo" style="display: none;">
+                                        <p class="mb-1"><strong>Total Scheduled:</strong> <span id="totalHours">0</span> hours</p>
+                                        <p class="mb-1"><strong>Course Requirement:</strong> <span id="courseHours">0</span> hours (<span id="courseUnits">0</span> units)</p>
+                                        <p class="mb-0" id="remainingHoursText"></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveScheduleBtn">Save Schedule</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-            days.forEach((day, i) => {
-                const group = $(
-                    `<div class="day-time-group">
-                        <select class="day-select">
-                            <option value="">Day</option>
-                            <option value="Monday" ${day === 'Monday' ? 'selected' : ''}>Monday</option>
-                            <option value="Tuesday" ${day === 'Tuesday' ? 'selected' : ''}>Tuesday</option>
-                            <option value="Wednesday" ${day === 'Wednesday' ? 'selected' : ''}>Wednesday</option>
-                            <option value="Thursday" ${day === 'Thursday' ? 'selected' : ''}>Thursday</option>
-                            <option value="Friday" ${day === 'Friday' ? 'selected' : ''}>Friday</option>
-                            <option value="Saturday" ${day === 'Saturday' ? 'selected' : ''}>Saturday</option>
-                            <option value="Sunday" ${day === 'Sunday' ? 'selected' : ''}>Sunday</option>
+<!-- Edit Schedule Modal -->
+<div class="modal fade" id="editScheduleModal" tabindex="-1" aria-labelledby="editScheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editScheduleModalLabel">Edit Schedule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editScheduleForm">
+                    <input type="hidden" id="editScheduleId">
+                    <div class="mb-3">
+                        <label for="editCourse" class="form-label">Course</label>
+                        <input type="text" class="form-control" id="editCourse" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editSection" class="form-label">Section</label>
+                        <input type="text" class="form-control" id="editSection" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDay" class="form-label">Day</label>
+                        <select class="form-select" id="editDay">
+                            <option value="M">Monday</option>
+                            <option value="T">Tuesday</option>
+                            <option value="W">Wednesday</option>
+                            <option value="Th">Thursday</option>
+                            <option value="F">Friday</option>
+                            <option value="Sat">Saturday</option>
                         </select>
-                        <input type="time" class="start-input" step="1800" value="${starts[i] || ''}" />
-                        <input type="time" class="end-input" step="1800" value="${ends[i] || ''}" />
-                        <span class="remove-day-time">×</span>
-                    </div>`
-                );
-                $('#dayTimeContainer').append(group);
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-3">
+                            <label for="editStartTime" class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="editStartTime">
+                        </div>
+                        
+                        <div class="col-md-3">
+                            <label for="editEndTime" class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="editEndTime">
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label for="editInstructor" class="form-label">Instructor</label>
+                        <select class="form-select" id="editInstructor"></select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRoom" class="form-label">Room</label>
+                        <select class="form-select" id="editRoom"></select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger me-auto" id="deleteScheduleBtn">Delete</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="updateScheduleBtn">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            let currentSchedule = [];
+            let timeslots = [];
+            let courseHours = 0;
+            let currentSectionId = '';
+            let currentFilters = {
+                program: '',
+                year: '',
+                semester: '',
+                section: ''
+            };
+            let currentModalFilters = {
+                program: '',
+                year: '',
+                semester: '',
+                section: ''
+            };
+    
+            // Initialize modals
+            const assignScheduleModal = new bootstrap.Modal(document.getElementById('assignScheduleModal'));
+            const editScheduleModal = new bootstrap.Modal(document.getElementById('editScheduleModal'));
+    
+            // Load initial schedule
+            loadInitialSchedule();
+            loadInitialModalSchedule();
+    
+            // Filter event listeners
+            $('#programFilter, #yearLevelFilter, #semesterFilter').change(function() {
+                applyFilters();
             });
-        }
-    }
-
-    function closeModal() {
-        $('#modal').removeClass('active');
-        editingRow = null;
-    }
-
-    $('#closeModalBtn').on('click', closeModal);
-
-    $('#addAnotherDayTime').on('click', function () {
-        const group = $(
-            `<div class="day-time-group">
-                <select class="day-select">
-                    <option value="">Day</option>
-                    <option value="Monday">Monday</option>
-                    <option value="Tuesday">Tuesday</option>
-                    <option value="Wednesday">Wednesday</option>
-                    <option value="Thursday">Thursday</option>
-                    <option value="Friday">Friday</option>
-                    <option value="Saturday">Saturday</option>
-                    <option value="Sunday">Sunday</option>
-                </select>
-                <input type="time" class="start-input" step="1800" />
-                <input type="time" class="end-input" step="1800" />
-                <span class="remove-day-time">×</span>
-            </div>`
-        );
-        $('#dayTimeContainer').append(group);
-    });
-
-    $('#dayTimeContainer').on('click', '.remove-day-time', function () {
-        if ($('.day-time-group').length > 1) {
-            $(this).closest('.day-time-group').remove();
-        } else {
-            alert("At least one day/time is required.");
-        }
-    });
-
-    $('#scheduleForm').on('submit', function (e) {
-        e.preventDefault();
-
-        const course = $('#course').val();
-        const program = $('#program').val();
-        const professor = $('#professor').val();
-        const room = $('#room').val();
-        const section = $('#section').val();
-
-        const days = [], starts = [], ends = [];
-
-        $('.day-time-group').each(function () {
-            const day = $(this).find('.day-select').val();
-            const start = $(this).find('.start-input').val();
-            const end = $(this).find('.end-input').val();
-            if (day && start && end) {
-                days.push(day);
-                starts.push(start);
-                ends.push(end);
+    
+            // Section filter has separate handling to avoid unnecessary reloads
+            $('#sectionFilter').change(function() {
+                const sectionId = $(this).val();
+                if (sectionId) {
+                    currentSectionId = sectionId;
+                    loadSchedule(sectionId);
+                }
+            });
+    
+            $('#programModalFilter, #yearLevelModalFilter, #semesterModalFilter').change(function() {
+                applyModalFilters();
+            });
+    
+            $('#modalSectionSelect').change(function() {
+                const sectionId = $(this).val();
+                if (sectionId) {
+                    currentModalFilters.section = sectionId;
+                    currentSectionId = sectionId;
+                    loadModalSchedule(sectionId);
+                }
+            });
+    
+            // Modal events
+            $('#assignScheduleModal').on('show.bs.modal', function() {
+                resetModalForm();
+            });
+    
+            $('#modalCourseSelect').change(function() {
+                updateCourseHours();
+                $('#hoursInfo').show();
+                updateHoursInfo(); 
+            });
+    
+            $('#addTimeslotBtn').click(addTimeslot);
+            $('#saveScheduleBtn').click(saveSchedule);
+    
+            // Edit modal events
+            $('#editScheduleModal').on('show.bs.modal', function(event) {
+                const button = $(event.relatedTarget);
+                const scheduleId = button.data('id');
+                loadScheduleForEdit(scheduleId);
+            });
+    
+            $('#updateScheduleBtn').click(updateSchedule);
+            $('#deleteScheduleBtn').click(deleteSchedule);
+    
+            // Functions
+            function loadInitialSchedule() {
+                // If filters are already set, apply them to get first section
+                const program = $('#programFilter').val();
+                const year = $('#yearLevelFilter').val();
+                const semester = $('#semesterFilter').val();
+    
+                if (program && year && semester) {
+                    applyFilters();
+                } else {
+                    const firstSection = $('#sectionFilter option:not(:disabled)').first();
+                    if (firstSection.length) {
+                        currentSectionId = firstSection.val();
+                        loadSchedule(currentSectionId);
+                    }
+                }
+            }
+            // Functions
+            function loadInitialModalSchedule() {
+                // Check if we already have valid filters
+                const program = $('#programModalFilter').val();
+                const year = $('#yearLevelModalFilter').val();
+                const semester = $('#semesterModalFilter').val();
+    
+                if (program && year && semester) {
+                    applyModalFilters();
+                } else {
+                    const firstSection = $('#modalSectionSelect option:not(:disabled)').first();
+                    if (firstSection.length) {
+                        currentSectionId = firstSection.val();
+                        currentModalFilters.section = currentSectionId;
+                        loadModalSchedule(currentSectionId);
+                    } else {
+                        $('#modalScheduleDisplay').html('<div class="alert alert-info">No sections available</div>');
+                    }
+                }
+            }
+    
+    
+            function applyFilters() {
+                // Get filter values
+                const program = $('#programFilter').val();
+                const year = $('#yearLevelFilter').val();
+                const semester = $('#semesterFilter').val();
+    
+                // Validate required filters
+                if (!program || !year || !semester) {
+                    return;
+                }
+    
+                // Update current filters
+                currentFilters = {
+                    program: program,
+                    year: year,
+                    semester: semester,
+                    section: $('#sectionFilter').val() // Keep current section if exists
+                };
+    
+                // Filter sections based on program/year/semester
+                filterSections().then(() => {
+                    // After sections are filtered, handle schedule loading
+                    const sectionSelect = $('#sectionFilter');
+                    const currentSection = sectionSelect.val();
+    
+                    if (currentSection) {
+                        // If a section was already selected and still exists, keep it
+                        if (sectionSelect.find(`option[value="${currentSection}"]`).length) {
+                            loadSchedule(currentSection);
+                        } else {
+                            // Otherwise load the first available section
+                            const firstSection = sectionSelect.find('option:not(:disabled)').first().val();
+                            if (firstSection) {
+                                sectionSelect.val(firstSection);
+                                loadSchedule(firstSection);
+                            }
+                        }
+                    } else {
+                        // No section selected yet, load the first available
+                        const firstSection = sectionSelect.find('option:not(:disabled)').first().val();
+                        if (firstSection) {
+                            sectionSelect.val(firstSection);
+                            loadSchedule(firstSection);
+                        }
+                    }
+                });
+            }
+    
+            function applyModalFilters() {
+                const program = $('#programModalFilter').val();
+                const year = $('#yearLevelModalFilter').val();
+                const semester = $('#semesterModalFilter').val();
+                const section = $('#modalSectionSelect').val();
+    
+                // Validate required filters
+                if (!program || !year || !semester) {
+                    return;
+                }
+    
+                // Update current filters
+                currentModalFilters = {
+                    program: program,
+                    year: year,
+                    semester: semester,
+                    section: section
+                };
+                loadCurriculumCourses();
+                // Process filters
+                filterModalSections().then(() => {
+                    const sectionSelect = $('#modalSectionSelect');
+                    const availableSections = sectionSelect.find('option:not(:disabled)');
+                    const currentSectionExists = section && sectionSelect.find(`option[value="${section}"]`).length > 0;
+                    
+                    if (sectionSelect.find('option[value=""]').length === 0) {
+                        sectionSelect.prepend('<option value="">All Sections</option>');
+                    }
+                    
+                    if (availableSections.length > 0) {
+                
+                        if (!currentSectionExists) {
+                            sectionSelect.val('');
+                            currentModalFilters.section = '';
+                            currentSectionId = '';
+                            
+                            const firstSection = availableSections.first().val();
+                            sectionSelect.val(firstSection);
+                            currentModalFilters.section = firstSection;
+                            currentSectionId = firstSection;
+                        }
+    
+                        // Load curriculum courses and schedule
+                        loadCurriculumCourses();
+                        if (currentModalFilters.section) {
+                            loadModalSchedule(currentModalFilters.section);
+                        }
+                    } else {
+                        // No sections available
+                        sectionSelect.val('');
+                        $('#modalScheduleDisplay').html('<div class="alert alert-info">No sections available for selected filters</div>');
+                    }
+                }).catch(error => {
+                    console.error('Error filtering modal sections:', error);
+                    showError('Failed to load sections. Please try again.');
+                });
+            }
+    
+            function filterModalSections() {
+                const programFilter = currentModalFilters.program;
+                const yearFilter = currentModalFilters.year;
+                const semesterFilter = currentModalFilters.semester;
+    
+                let hasVisibleOptions = false;
+                $('#modalSectionSelect option[value=""]').remove();
+    
+                $('#modalSectionSelect option').each(function() {
+                    // Skip the default option (if you have one)
+                    if ($(this).val() === "") return;
+    
+                    const sectionProgram = $(this).data('program');
+                    const sectionYear = $(this).data('year');
+                    const sectionSemester = $(this).data('semester');
+    
+                    const matchesProgram = !programFilter || sectionProgram == programFilter;
+                    const matchesYear = !yearFilter || sectionYear == yearFilter;
+                    const matchesSemester = !semesterFilter || sectionSemester == semesterFilter;
+    
+                    $(this).toggle(matchesProgram && matchesYear && matchesSemester);
+    
+                    if (matchesProgram && matchesYear && matchesSemester) {
+                        hasVisibleOptions = true;
+                    }
+    
+                    if (!matchesProgram || !matchesYear || !matchesSemester) {
+                        $(this).prop('selected', false);
+                    }
+                });
+    
+                // Add or show/hide the "No section filtered" option
+                let noSectionOption = $('#modalSectionSelect option[value=""]');
+                if (noSectionOption.length === 0) {
+                    // Create it if it doesn't exist
+                    $('#modalSectionSelect').prepend('<option value="">No section filtered</option>');
+                    noSectionOption = $('#modalSectionSelect option[value=""]');
+                }
+    
+                // Show "No section filtered" only if no options match
+                noSectionOption.toggle(!hasVisibleOptions);
+    
+                if (!hasVisibleOptions) {
+                    noSectionOption.prop('selected', true);
+                } else if (!currentModalFilters.section) {
+                    $('#modalSectionSelect option:visible:not(:disabled)').first().prop('selected', true);
+                }
+            }
+    
+           
+            function filterSections() {
+                const programFilter = currentFilters.program;
+                const yearFilter = currentFilters.year;
+                const semesterFilter = currentFilters.semester;
+                console.log("current filters: ", programFilter, yearFilter, semesterFilter);
+    
+                let hasVisibleOptions = false;
+                $('#sectionFilter option[value=""]').remove();
+    
+                $('#sectionFilter option').each(function() {
+                    // Skip the default option (if you have one)
+                    if ($(this).val() === "") return;
+    
+                    const sectionProgram = $(this).data('program');
+                    const sectionYear = $(this).data('year');
+                    const sectionSemester = $(this).data('semester');
+                    console.log("section: ", sectionProgram, sectionYear, sectionSemester);
+                    
+                    const matchesProgram = !programFilter || sectionProgram == programFilter;
+                    const matchesYear = !yearFilter || sectionYear == yearFilter;
+                    const matchesSemester = !semesterFilter || sectionSemester == semesterFilter;
+                    
+                    $(this).toggle(matchesProgram && matchesYear && matchesSemester);
+    
+                    if (matchesProgram && matchesYear && matchesSemester) {
+                        hasVisibleOptions = true;
+                    }
+    
+                    if (!matchesProgram || !matchesYear || !matchesSemester) {
+                        $(this).prop('selected', false);
+                    }
+                });
+    
+                // Add or show/hide the "No section filtered" option
+                let noSectionOption = $('#sectionFilter option[value=""]');
+                if (noSectionOption.length === 0) {
+                    // Create it if it doesn't exist
+                    $('#sectionFilter').prepend('<option value="">No section filtered</option>');
+                    noSectionOption = $('#sectionFilter option[value=""]');
+                }
+    
+                // Show "No section filtered" only if no options match
+                noSectionOption.toggle(!hasVisibleOptions);
+    
+                if (!hasVisibleOptions) {
+                    noSectionOption.prop('selected', true);
+                } else if (!currentFilters.section) {
+                    $('#sectionFilter option:visible:not(:disabled)').first().prop('selected', true);
+                }
+            }
+    
+            function loadCurriculumCourses() {
+                const programFilter = currentModalFilters.program;
+                const yearFilter = currentModalFilters.year; // can be null/undefined
+                const semesterFilter = currentModalFilters.semester; // can be null/undefined
+    
+                // Validate required filters - only programCode is required
+                if (!programFilter) {
+                    showError('Please select a program first');
+                    return;
+                }
+    
+                console.log("Loading curriculum courses with filters:", {
+                    program: programFilter,
+                    year: yearFilter,
+                    semester: semesterFilter
+                });
+    
+                // Show loading state in dropdown
+                const courseSelect = $('#modalCourseSelect');
+    
+                // Build request data - only include year/semester if they have values
+                const requestData = {
+                    programCode: programFilter
+                };
+    
+                // Add optional parameters only if they exist
+                if (yearFilter) requestData.yearLevel = yearFilter;
+                if (semesterFilter) requestData.semester = semesterFilter;
+    
+                $.ajax({
+                    url: '/Head/Curriculum/GetCurriculumCourses',
+                    method: 'GET',
+                    data: requestData,
+                    dataType: 'json',
+                    success: function(response) {
+                        courseSelect.empty(); // Clear loading message
+    
+                        // Always include the default option
+                        courseSelect.append('<option value="">All Courses</option>');
+    
+                        if (response.success && response.data && response.data.length > 0) {
+                            console.log('Successfully loaded curriculum courses:', response.data);
+    
+                            // Add each course to the dropdown
+                            response.data.forEach(course => {
+                                courseSelect.append(
+                                    $('<option></option>')
+                                        .val(course.Code) // Note: Changed from 'code' to 'Code' to match backend
+                                        .text(`${course.Code} - ${course.Title}`) // Changed property names
+                                        .data('lec-hours', course.LecHours)
+                                        .data('lab-hours', course.LabHours)
+                                        .data('units', course.Units)
+                                );
+                            });
+                        } else {
+                            courseSelect.append('<option disabled>No courses available</option>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading curriculum courses:', status, error);
+                        courseSelect.html('<option value="">Error loading courses</option>');
+                        showError('Failed to load curriculum courses. Please try again later.');
+                    }
+                });
+            }
+            
+            function loadSchedule(sectionId) {
+                if (!sectionId) return;
+                console.log(`Loading schedule for section ${sectionId}`);
+                $('#scheduleDisplay').html(`<div class="loading-spinner">Existing Schedule for ${sectionId}</div>`);
+    
+                $.get(`/Head/Schedules/GetSchedule?sectionId=${sectionId}`)
+                    .done(function(data) {
+                        currentSchedule = data;
+                        console.log('Schedule data:', currentSchedule);
+                        renderSchedule();
+                    })
+                    .fail(function() {
+                        showError('Failed to load schedule. Please try again.');
+                        $('#scheduleDisplay').html('<div class="error-message">Schedule unavailable</div>');
+                    });
+            }                                                                                                                                                                                                       
+            function loadModalSchedule(sectionId) {
+                if (!sectionId) return;
+                console.log(`Loading schedule for section ${sectionId}`);
+                $('#scheduleModalDisplay').html(`<div class="loading-spinner">Existing Schedule for ${sectionId}</div>`);
+                
+                $.get(`/Head/Schedules/GetSchedule?sectionId=${sectionId}`, function(data) {
+                    currentSchedule = data;
+                    console.log(currentSchedule);
+                    renderModalSchedule();
+                }).fail(function() {
+                    showError('Failed to load schedule. Please try again.');
+                });
+            }
+    
+            function renderSchedule() {
+                const $scheduleBody = $('.scheduleBody');
+                $scheduleBody.empty();
+    
+                if (!currentSchedule || !currentSchedule.data || currentSchedule.data.length === 0) {
+                    $scheduleBody.append('<tr><td colspan="8" class="text-center">No schedule data available</td></tr>');
+                    return;
+                }
+    
+                currentSchedule.data.forEach(course => {
+                    try {
+                        // Process each schedule detail for the course
+                        course.ScheduleDetails.forEach(schedule => {
+                            let timeDisplay = 'No schedule';
+                            let daysDisplay = '?';
+                            let hasConflict = false;
+    
+                            if (schedule.TimeSlots && Array.isArray(schedule.TimeSlots)) {
+                                // Group time slots by similar times
+                                const timeGroups = {};
+                                schedule.TimeSlots.forEach(slot => {
+                                    hasConflict = hasConflict || slot.HasConflict;
+                                    const timeKey = `${slot.StartTime.Hours}:${slot.StartTime.Minutes}-${slot.EndTime.Hours}:${slot.EndTime.Minutes}`;
+                                    if (!timeGroups[timeKey]) {
+                                        timeGroups[timeKey] = {
+                                            days: [],
+                                            startTime: `${slot.StartTime.Hours}:${slot.StartTime.Minutes}`,
+                                            endTime: `${slot.EndTime.Hours}:${slot.EndTime.Minutes}`
+                                        };
+                                    }
+                                    timeGroups[timeKey].days.push(slot.Day);
+                                });
+    
+                                // Create time/day display
+                                timeDisplay = Object.values(timeGroups).map(group => {
+                                    const formatTime = (timeStr) => {
+                                        if (!timeStr) return '--:--';
+                                        const [hours, minutes] = timeStr.split(':');
+                                        const hour = parseInt(hours) % 12 || 12;
+                                        const minute = minutes.padStart(2, '0');
+                                        const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
+                                        return `${hour}:${minute} ${ampm}`;
+                                    };
+                                    return `${formatTime(group.startTime)}-${formatTime(group.endTime)}`;
+                                }).join('<br>');
+    
+                                daysDisplay = [...new Set(schedule.TimeSlots.map(s => s.Day))].sort().join('/');
+                            }
+    
+                            // Render the row
+                            $scheduleBody.append(`
+                        <tr class="${hasConflict ? 'table-warning' : ''}">
+                            <td>${schedule.ScheduleId || 'N/A'}</td>
+                            <td>${course.Code || 'N/A'}</td>
+                            <td>${course.Title || 'N/A'}</td>
+                            <td>${course.Units || '0'}</td>
+                            <td>${timeDisplay}</td>
+                            <td>${daysDisplay}</td>
+                            <td>${schedule.RoomNumber || 'TBA'}</td>
+                            <td>${schedule.InstructorName || 'TBA'}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm gap-1" role="group">
+                                    <button type="button" 
+                                            class="btn btn-primary edit-schedule-btn"
+                                            data-schedule-id="${schedule.ScheduleId}"
+                                            title="Edit schedule">
+                                        <i class="fas fa-edit"></i>
+                                        Edit
+                                    </button>
+                                    <button type="button" 
+                                            class="btn btn-danger delete-schedule-btn"
+                                            data-schedule-id="${schedule.ScheduleId}"
+                                            title="Delete schedule">
+                                        <i class="fas fa-trash-alt"></i>
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `);
+                        });
+    
+                    } catch (error) {
+                        console.error('Error rendering course schedule:', course, error);
+                        $scheduleBody.append(`
+                    <tr class="table-danger">
+                        <td colspan="8">Error displaying schedule for ${course.Code || 'unknown course'}</td>
+                    </tr>
+                `);
+                    }
+                });
+            }
+            function renderModalSchedule() {
+                console.log("renderModalSchedule");
+                const $scheduleModalBody = $('.scheduleModalBody');
+                $scheduleModalBody.empty();
+    
+                if (!currentSchedule || !currentSchedule.data || currentSchedule.data.length === 0) {
+                    $scheduleModalBody.append('<tr><td colspan="8" class="text-center">No schedule data available</td></tr>');
+                    return;
+                }
+    
+                currentSchedule.data.forEach(course => {
+                    try {
+                        // Process each schedule detail for the course
+                        course.ScheduleDetails.forEach(schedule => {
+                            let timeDisplay = 'No schedule';
+                            let daysDisplay = '?';
+                            let hasConflict = false;
+    
+                            if (schedule.TimeSlots && Array.isArray(schedule.TimeSlots)) {
+                                // Group time slots by similar times
+                                const timeGroups = {};
+                                schedule.TimeSlots.forEach(slot => {
+                                    hasConflict = hasConflict || slot.HasConflict;
+                                    const timeKey = `${slot.StartTime.Hours}:${slot.StartTime.Minutes}-${slot.EndTime.Hours}:${slot.EndTime.Minutes}`;
+                                    if (!timeGroups[timeKey]) {
+                                        timeGroups[timeKey] = {
+                                            days: [],
+                                            startTime: `${slot.StartTime.Hours}:${slot.StartTime.Minutes}`,
+                                            endTime: `${slot.EndTime.Hours}:${slot.EndTime.Minutes}`
+                                        };
+                                    }
+                                    timeGroups[timeKey].days.push(slot.Day);
+                                });
+    
+                                // Create time/day display
+                                timeDisplay = Object.values(timeGroups).map(group => {
+                                    const formatTime = (timeStr) => {
+                                        if (!timeStr) return '--:--';
+                                        const [hours, minutes] = timeStr.split(':');
+                                        const hour = parseInt(hours) % 12 || 12;
+                                        const minute = minutes.padStart(2, '0');
+                                        const ampm = parseInt(hours) >= 12 ? 'PM' : 'AM';
+                                        return `${hour}:${minute} ${ampm}`;
+                                    };
+                                    return `${formatTime(group.startTime)}-${formatTime(group.endTime)}`;
+                                }).join('<br>');
+    
+                                daysDisplay = [...new Set(schedule.TimeSlots.map(s => s.Day))].sort().join('/');
+                            }
+    
+                            // Render the row
+                            $scheduleModalBody.append(`
+                        <tr class="${hasConflict ? 'table-warning' : ''}">
+                            <td>${course.Title || 'N/A'}</td>
+                            <td>${course.Units || '0'}</td>
+                            <td>${timeDisplay}</td>
+                            <td>${daysDisplay}</td>
+                            <td>${schedule.RoomNumber || 'TBA'}</td>
+                        </tr>
+                    `);
+                        });
+    
+                    } catch (error) {
+                        console.error('Error rendering course schedule:', course, error);
+                        $scheduleModalBody.append(`
+                    <tr class="table-danger">
+                        <td colspan="8">Error displaying schedule for ${course.Code || 'unknown course'}</td>
+                    </tr>
+                `);
+                    }
+                });
+            }
+    
+            function formatTimeDisplay(time) {
+                const [hourStr, minuteStr] = time.split(':');
+                const hour = parseInt(hourStr);
+                const minutes = parseInt(minuteStr);
+    
+                const period = hour >= 12 ? 'pm' : 'am';
+                const displayHour = hour % 12 || 12;
+    
+                if (minutes === 0) {
+                    return `${displayHour}${period}`;
+                }
+                return `${displayHour}:${minuteStr}${period}`;
+            }
+    
+            
+            function resetModalForm() {
+                $('#assignScheduleForm')[0].reset();
+                timeslots = [];
+                updateTimeslotDisplay();
+                $('#saveScheduleBtn').prop('disabled', true);
+            }
+            
+            function updateCourseHours() {
+                const selectedOption = $('#modalCourseSelect option:selected');
+                const lecHours = parseFloat(selectedOption.data('lec-hours')) || 0;
+                const labHours = parseFloat(selectedOption.data('lab-hours')) || 0;
+                const units = parseFloat(selectedOption.data('units')) || 0;
+                courseHours = lecHours + labHours;
+                
+                $('#courseHours').text(courseHours);
+                $('#courseUnits').text(units);
+                updateHoursInfo();
+            }
+    
+            function addTimeslot() {
+                const day = $('#dayFilter').val();
+                const dayName = $('#dayFilter option:selected').text();
+                const startTime = $('#startTimeFilter').val();
+                const endTime = $('#endTimeFilter').val();
+    
+                if (!day || !startTime || !endTime) {
+                    showError('Please fill in all fields');
+                    return;
+                }
+    
+                if (startTime >= endTime) {
+                    showError('End time must be after start time');
+                    return;
+                }
+    
+                const newSlot = {
+                    day,
+                    dayName,
+                    startTime,
+                    endTime,
+                    key: `${day}-${startTime}-${endTime}`
+                };
+    
+                // Check for duplicates
+                if (timeslots.some(slot => slot.key === newSlot.key)) {
+                    showError('This timeslot already exists');
+                    return;
+                }
+    
+                // Check for conflicts with existing timeslots
+                const conflicts = checkForTimeslotConflicts(newSlot);
+                if (conflicts.length > 0) {
+                    showError('This timeslot conflicts with existing slots');
+                    return;
+                }
+    
+                // Calculate the duration of the new timeslot in hours
+                const newSlotDuration = calculateTimeslotDuration(newSlot);
+                
+                // Calculate total scheduled hours including the new slot
+                const totalHoursWithNewSlot = calculateTotalHours() + newSlotDuration;
+                
+                // Check if adding this timeslot would exceed course hours
+                if (totalHoursWithNewSlot > courseHours) {
+                    const remainingHours = courseHours - calculateTotalHours();
+                    showError(`Adding this timeslot would exceed the course requirement. Maximum remaining hours: ${remainingHours.toFixed(2)}`);
+                    return;
+                }
+    
+                timeslots.push(newSlot);
+                updateTimeslotDisplay();
+                
+                // Clear time inputs
+                $('#startTimeFilter, #endTimeFilter').val('');
+            }
+    
+            function calculateTimeslotDuration(timeslot) {
+                const start = new Date(`2000-01-01T${timeslot.startTime}`);
+                const end = new Date(`2000-01-01T${timeslot.endTime}`);
+                return (end - start) / (1000 * 60 * 60); // Convert milliseconds to hours
+            }
+    
+            function checkForTimeslotConflicts(newSlot) {
+                return timeslots.filter(slot => {
+                    return slot.day === newSlot.day && 
+                           ((newSlot.startTime >= slot.startTime && newSlot.startTime < slot.endTime) ||
+                            (newSlot.endTime > slot.startTime && newSlot.endTime <= slot.endTime) ||
+                            (newSlot.startTime <= slot.startTime && newSlot.endTime >= slot.endTime));
+                });
+            }
+    
+            function updateTimeslotDisplay() {
+                const $display = $('#timeslotDisplay');
+                
+                if (timeslots.length === 0) {
+                    $display.html('<p class="text-muted mb-0">No timeslots added yet.</p>');
+                    $('#hoursInfo').hide();
+                    return;
+                }
+    
+                let html = '<div class="d-flex flex-wrap gap-2 mb-2">';
+                timeslots.forEach((slot, index) => {
+                    html += `
+                        <span class="badge bg-primary badge-timeslot" data-index="${index}">
+                            ${slot.dayName}: ${formatTimeDisplay(slot.startTime)} - ${formatTimeDisplay(slot.endTime)}
+                            <i class="bi bi-x ms-2 remove-timeslot"></i>
+                        </span>`;
+                });
+                html += '</div>';
+                $display.html(html);
+                $('#hoursInfo').show();
+                updateHoursInfo();
+    
+                // Add remove handlers
+                $('.remove-timeslot').click(function() {
+                    const index = $(this).parent().data('index');
+                    timeslots.splice(index, 1);
+                    updateTimeslotDisplay();
+                });
+            }
+    
+            function updateHoursInfo() {
+                const totalHours = calculateTotalHours();
+                const hoursRemaining = courseHours - totalHours;
+                
+                $('#totalHours').text(totalHours.toFixed(2));
+                $('#remainingHoursText')
+                    .toggleClass('text-warning', hoursRemaining > 0)
+                    .toggleClass('text-success', hoursRemaining <= 0)
+                    .html(`<strong>${hoursRemaining > 0 ? 'Remaining:' : 'Completed:'}</strong> 
+                          ${Math.abs(hoursRemaining).toFixed(2)} hours ${hoursRemaining > 0 ? 'needed' : ''}`);
+                
+                $('#saveScheduleBtn').prop('disabled', hoursRemaining > 0);
+            }
+    
+            function calculateTotalHours() {
+                let totalHours = 0;
+                timeslots.forEach(slot => {
+                    totalHours += calculateTimeslotDuration(slot);
+                });
+                return totalHours;
+            }
+    
+            function saveSchedule() {
+                const courseId = $('#modalCourseSelect').val();
+                const sectionId = $('#modalSectionSelect').val();
+                const instructorId = $('#instructorSelect').val();
+                const roomId = $('#roomSelect').val();
+    
+                if (!courseId || !sectionId || !instructorId || !roomId || timeslots.length === 0) {
+                    showError('Please fill in all required fields');
+                    return;
+                }
+    
+                // Final validation to ensure total hours match course requirements
+                const totalHours = calculateTotalHours();
+                if (Math.abs(totalHours - courseHours) > 0.1) { // Allow small floating point differences
+                    showError(`Total scheduled hours (${totalHours.toFixed(2)}) do not match course requirements (${courseHours.toFixed(2)})`);
+                    return;
+                }
+    
+                const scheduleData = {
+                    Schedule: {
+                        CourseCode: courseId,  
+                        BlockSectionCode: sectionId,  
+                        ProfessorId: parseInt(instructorId),  
+                        RoomId: parseInt(roomId)  
+                    },
+                    TimeSlot: timeslots.map(slot => ({
+                        Day: slot.day,
+                        StartTime: `${slot.startTime}:00`,
+                        EndTime: `${slot.endTime}:00`
+                    }))
+                };
+    
+                $.ajax({
+                    url: '/Head/Schedules/SaveSchedule',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(scheduleData),
+                    success: function(response) {
+                        if (response.mess) {
+                            showSuccess('Schedule saved successfully');
+                            assignScheduleModal.hide();
+                            loadSchedule(sectionId);
+                        } else {
+                            showError(response.error || 'Failed to save schedule');
+                            if (!response.mess) {
+                                showError('Conflicts detected: ' + response.error.join(', '));
+                            }
+                        }
+                    },
+                    error: function() {
+                        showError('An error occurred while saving the schedule');
+                    }
+                });
+            }
+    
+            function loadScheduleForEdit(scheduleId) {
+                $.get(`/Schedule/GetScheduleEntry?id=${scheduleId}`, function(data) {
+                    $('#editScheduleId').val(data.id);
+                    $('#editCourse').val(data.courseCode + ' - ' + data.courseTitle);
+                    $('#editSection').val(data.sectionName);
+                    $('#editDay').val(data.day);
+                    $('#editStartTime').val(data.startTime);
+                    $('#editEndTime').val(data.endTime);
+    
+                    // Load instructors and set current
+                    $.get('/Schedule/GetInstructors', function(instructors) {
+                        const $select = $('#editInstructor');
+                        $select.empty();
+                        instructors.forEach(instructor => {
+                            $select.append(`<option value="${instructor.id}" ${instructor.id == data.instructorId ? 'selected' : ''}>
+                                            ${instructor.name}
+                                          </option>`);
+                        });
+                    });
+    
+                    // Load rooms and set current
+                    $.get('/Schedule/GetRooms', function(rooms) {
+                        const $select = $('#editRoom');
+                        $select.empty();
+                        rooms.forEach(room => {
+                            $select.append(`<option value="${room.id}" ${room.id == data.roomId ? 'selected' : ''}>
+                                            ${room.number} (${room.type})
+                                          </option>`);
+                        });
+                    });
+                }).fail(function() {
+                    showError('Failed to load schedule data');
+                    editScheduleModal.hide();
+                });
+            }
+    
+            function updateSchedule() {
+                const scheduleId = $('#editScheduleId').val();
+                const day = $('#editDay').val();
+                const startTime = $('#editStartTime').val();
+                const endTime = $('#editEndTime').val();
+                const instructorId = $('#editInstructor').val();
+                const roomId = $('#editRoom').val();
+    
+                if (!scheduleId || !day || !startTime || !endTime || !instructorId || !roomId) {
+                    showError('Please fill in all fields');
+                    return;
+                }
+    
+                const updateData = {
+                    id: scheduleId,
+                    day,
+                    startTime,
+                    endTime,
+                    instructorId,
+                    roomId
+                };
+    
+                $.ajax({
+                    url: '/Schedule/UpdateSchedule',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(updateData),
+                    success: function(response) {
+                        if (response.success) {
+                            showSuccess('Schedule updated successfully');
+                            editScheduleModal.hide();
+                            loadSchedule(currentSectionId);
+                        } else {
+                            showError(response.message || 'Failed to update schedule');
+                        }
+                    },
+                    error: function() {
+                        showError('An error occurred while updating the schedule');
+                    }
+                });
+            }
+    
+            function deleteSchedule() {
+                if (!confirm('Are you sure you want to delete this schedule entry?')) {
+                    return;
+                }
+    
+                const scheduleId = $('#editScheduleId').val();
+    
+                $.ajax({
+                    url: '/Schedule/DeleteSchedule',
+                    type: 'POST',
+                    data: { id: scheduleId },
+                    success: function(response) {
+                        if (response.success) {
+                            showSuccess('Schedule deleted successfully');
+                            editScheduleModal.hide();
+                            loadSchedule(currentSectionId);
+                        } else {
+                            showError(response.message || 'Failed to delete schedule');
+                        }
+                    },
+                    error: function() {
+                        showError('An error occurred while deleting the schedule');
+                    }
+                });
+            }
+    
+            function showSuccess(message) {
+                showToast(message, 'success');
+            }
+    
+            function showError(message) {
+                showToast(message, 'danger');
+            }
+    
+            function showToast(message, type) {
+                const toast = $(`
+                    <div class="toast align-items-center text-white bg-${type}" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">${message}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                `);
+                
+                $('#notificationContainer').append(toast);
+                toast.toast({ autohide: true, delay: 5000 }).toast('show');
+                
+                toast.on('hidden.bs.toast', function() {
+                    toast.remove();
+                });
             }
         });
-        const data = {
-            misCode: editingRow ? $(editingRow).data('id') : 'MIS' + Math.floor(Math.random() * 1000),
-            course,
-            professor,
-            room,
-            section,
-            scheduleDetails
-        };
-
-        console.log("Data to send:", data);
-
-        // 🔁 Replace this URL with your actual API endpoint
-        $.post('/api/schedules', data)
-            .done(function (response) {
-                alert("Schedule saved successfully!");
-                closeModal();
-                loadAndRenderSchedule(); // Reload schedules from server or update table
-            })
-            .fail(function (xhr, status, error) {
-                alert("Failed to save schedule.");
-                console.error("Error saving schedule:", error);
-            });
-    });
-    
-
-    $('#filterButton').on('click', function () {
-        const year = $('#academicYearFilter').val().toLowerCase();
-        const program = $('#programFilter').val().toLowerCase();
-        const section = $('#sectionFilter').val().toLowerCase();
-        const semester = $('#semesterFilter').val().toLowerCase();
-
-        $('#scheduleBody tr').each(function () {
-            const cells = $(this).find("td");
-            const show =
-                (!year || cells.eq(1).text().toLowerCase().includes(year)) &&
-                (!program || cells.eq(1).text().toLowerCase().includes(program)) &&
-                (!section || cells.eq(6).text().toLowerCase().includes(section)) &&
-                (!semester || true); // Simulated
-            $(this).toggle(show);
-        });
-    });
-
-    $('#resetFilterButton').on('click', function () {
-        $('#academicYearFilter, #programFilter, #sectionFilter, #semesterFilter').val('');
-        $('#scheduleBody tr').show();
-    });
-
-    $(function () {
-        loadAndRenderSchedule();
-    });
-</script>
-
-</body>
-</html>
+    </script>
+}

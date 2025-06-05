@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EnrollmentSystem.Utilities
+namespace Enrollment_System.Utilities
 {
     public static class PasswordUtil
     {

@@ -1,207 +1,260 @@
-@model IEnumerable<EnrollmentSystem.Models.Course>
-
+@model IEnumerable<Enrollment_System.Models.Course>
 @{
-    Layout = "~/Views/Shared/_AdminHeader.cshtml";
+    Layout = "~/Views/Shared/AdminHeader.cshtml";
+    ViewBag.Title = "Manage Courses - Enrollment System";
+    var prerequisites = ViewBag.Prerequisites as List<Enrollment_System.Models.Prerequisite>;
+    var prerequisitesLookup = prerequisites != null 
+        ? prerequisites
+            .GroupBy(p => p.CourseCode)
+            .ToDictionary(g => g.Key, g => g.Select(p => p.PrerequisiteCourseCode).ToList())
+        : new Dictionary<string, List<string>>(); // Default empty dictionary
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Courses - Enrollment System</title>
-    <link rel="stylesheet" href="@Url.Content("~/Content/bootstrap.min.css")">
+@section Styles {
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <style>
-        .accordion-body {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
-        .total-units {
-            font-weight: bold;
-            text-align: right;
-        }
-    </style>
-</head>
-<body>
-
-<div class="container content-section mt-5">
-    <h3>Courses by Category</h3>
-
-    @{
-        var allCategories = new List<string> {
-            "Core Courses",
-            "Mandated Course, Rizal",
-            "Elective Courses",
-            "Common Courses",
-            "Professional Courses",
-            "On-the-Job Training",
-            "Professional Electives",
-            "Professional Domain Courses",
-            "Physical Education",
-            "National Service Training Program"
-        };
+    body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
 
-    @foreach (var categoryName in allCategories)
-    {
-        var group = Model?.Where(c => c.Ctg_Name == categoryName) ?? Enumerable.Empty<EnrollmentSystem.Models.Course>();
-        decimal totalUnits = group.Sum(c => c.Crs_Units);
+    .content-section {
+        padding: 0;
+        flex-grow: 1;
+    }
 
-        <div class="accordion mb-3" id="categoryAccordion-@categoryName.Replace(" ", "").Replace(",", "")">
-            <div class="accordion-item">
-                <h2 class="accordion-header" id="heading-@categoryName.Replace(" ", "").Replace(",", "")">
-                    <button class="accordion-button collapsed" type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapse-@categoryName.Replace(" ", "").Replace(",", "")"
-                            aria-expanded="false"
-                            aria-controls="collapse-@categoryName.Replace(" ", "").Replace(",", "")">
-                        @categoryName
-                        <span class="ms-auto total-units">Total Units: @totalUnits.ToString("F1")</span>
-                    </button>
-                </h2>
-                <div id="collapse-@categoryName.Replace(" ", "").Replace(",", "")"
-                     class="accordion-collapse collapse"
-                     aria-labelledby="heading-@categoryName.Replace(" ", "").Replace(",", "")">
-                    <div class="accordion-body">
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Course Code</th>
-                                        <th>Title</th>
-                                        <th>Prerequisite</th>
-                                        <th>Units</th>
-                                        <th>Lec</th>
-                                        <th>Lab</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if (!group.Any())
-                                    {
-                                        <tr><td colspan="7" class="text-center">No courses found.</td></tr>
-                                    }
-                                    else
-                                    {
-                                        foreach (var course in group)
-                                        {
-                                            <tr>
-                                                <td>@course.Crs_Code</td>
-                                                <td>@course.Crs_Title</td>
-                                                <td>@(string.IsNullOrEmpty(course.Preq_Crs_Code) ? "None" : course.Preq_Crs_Code)</td>
-                                                <td>@course.Crs_Units</td>
-                                                <td>@course.Crs_Lec</td>
-                                                <td>@course.Crs_Lab</td>
-                                                <td>
-                                                    <button class="btn btn-sm btn-warning edit-course" 
-                                                            data-code="@course.Crs_Code"
-                                                            data-title="@course.Crs_Title"
-                                                            data-prereq="@course.Preq_Crs_Code"
-                                                            data-units="@course.Crs_Units"
-                                                            data-lec="@course.Crs_Lec"
-                                                            data-lab="@course.Crs_Lab"
-                                                            data-category="@course.Ctg_Name">
-                                                        Edit
-                                                    </button>
-                                                    <a href="javascript:void(0);" 
-                                                       class="btn btn-sm btn-danger delete-course"
-                                                       data-code="@course.Crs_Code">
-                                                        Delete
-                                                    </a>
-                                                </td>
-                                            </tr>
-                                        }
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
+    .table-responsive {
+        margin-bottom: 30px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 5px;
+    }
+
+    th, td {
+        border: 1px solid #000000 !important;
+        padding: 8px;
+        text-align: left;
+    }
+
+    th {
+        background-color: #273F4F;
+        font-weight: 500;
+        color: white;
+    }
+    
+    .edit-buttons {
+        display: flex;
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .edit-buttons button {
+        margin: 5px 0;
+        background-color: #273F4F;
+        color: #EFEEEA;
+        border: 0 solid #000000;
+        padding: 3px;
+        font-family: 'Montserrat', serif;
+        font-size: 1.1rem;
+        min-width: 150px;
+        min-height: 30px;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+        /* Removed border declaration */
+    }
+
+    /* Added specific styling for action buttons container cell */
+    td.action-buttons-cell {
+        border: 1px solid #000000 !important;
+    }
+
+    .action-buttons a {
+        text-decoration: none;
+        padding: 5px 10px;
+        border-radius: 0;
+        border: none; /* Changed from 1px solid #000000 to none */
+        font-size: 0.9rem;
+    }
+
+    .btn-warning {
+        background-color: #FE7743;
+        color: #212529;
+    }
+    
+    .btn {
+        border-radius: 0 !important;
+        background-color: #273F4F !important;
+        font-weight: 500 !important;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.25) !important;
+        border: none !important; /* Added to ensure no border */
+    }
+
+    .btn-danger {
+        color: white;
+        border-radius: 0;
+        border: none;
+        padding: 5px;
+    }
+
+    .btn-success {
+        background-color: #273F4F;
+        color: white;
+        border-radius: 0;
+    }
+
+    .no-courses {
+        text-align: center;
+        padding: 20px;
+        color: #6C757D;
+    }
+</style>
+}
+<div class="container content-section">
+    <div class="course-table">
+        <div class="d-flex justify-content-between align-items-center mb-3 ">
+            <h2>Courses List</h2>
+            @Html.ActionLink("Add New Course", "Index", "AddCourse", null, new { @class = "btn btn-success" })
         </div>
-    }
 
-    <!-- Add New Course Button -->
-    @Html.ActionLink("Add New Course", "Admin_AddCourse", "Admin", null, new { @class = "btn btn-success mt-3" })
-
-    <!-- Edit Modal -->
-    <div class="modal fade" id="editCourseModal" tabindex="-1" aria-labelledby="editCourseModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <form method="post" action="@Url.Action("UpdateCourse", "Course")">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="editCourseModalLabel">Edit Course</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <input type="hidden" id="editCrsCode" name="crsCode" />
-
-                        <div class="mb-3">
-                            <label for="editCrsTitle" class="form-label">Title:</label>
-                            <input type="text" class="form-control" id="editCrsTitle" name="crsTitle" required>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="editPreqCrsCode" class="form-label">Prerequisite:</label>
-                            <input type="text" class="form-control" id="editPreqCrsCode" name="preqCrsCode">
-                        </div>
-
-                        <div class="row g-2">
-                            <div class="col-md-4">
-                                <label for="editCrsUnits" class="form-label">Units:</label>
-                                <input type="number" step="0.5" class="form-control" id="editCrsUnits" name="crsUnits" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="editCrsLec" class="form-label">Lec Hours:</label>
-                                <input type="number" class="form-control" id="editCrsLec" name="crsLec" required>
-                            </div>
-                            <div class="col-md-4">
-                                <label for="editCrsLab" class="form-label">Lab Hours:</label>
-                                <input type="number" class="form-control" id="editCrsLab" name="crsLab" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                    </div>
-                </form>
-            </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Course Code</th>
+                        <th>Descriptive Title</th>
+                        <th>Course Category</th>
+                        <th>Prerequisite(s)</th>
+                        <th>Units</th>
+                        <th>Lec Hours</th>
+                        <th>Lab Hours</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @if (Model == null || !Model.Any())
+                {
+                    <tr>
+                        <td colspan="8" class="no-courses">
+                            <i class="bi bi-exclamation-circle"></i> No courses found.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var course in Model)
+                    {
+                        var coursePrerequisites = (prerequisitesLookup != null && prerequisitesLookup.ContainsKey(course.Code)) 
+                            ? prerequisitesLookup[course.Code] 
+                            : new List<string>();
+        
+                        <tr>
+                            <td>@course.Code</td>
+                            <td>@course.Title</td>
+                            <td>@course.CategoryName</td>
+                            <td>
+                                @if (coursePrerequisites.Count == 0)
+                                {
+                                    <span class="text-muted">None</span>
+                                }
+                                else
+                                {
+                                    <span>@string.Join(", ", coursePrerequisites)</span>
+                                }
+                            </td>
+                            <td>@course.Units</td>
+                            <td>@course.LecHours</td>
+                            <td>@course.LabHours</td>
+                            <td class="action-buttons-cell">
+                                <div class="action-buttons">
+                                    <button class="btn-danger" id="deleteCourse">Delete</button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<!-- Scripts -->
-<script src="@Url.Content("~/Scripts/jquery-3.7.0.js")"></script>
-<script src="@Url.Content("~/Scripts/bootstrap.bundle.min.js")"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-
-<!-- Select2 JS -->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="@Url.Content("~/Scripts/MyScript/Course.js")"></script>
-<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
-
-<!-- Select2 CSS -->
-
-<script>
-    function confirmDelete(courseId) {
-        if (confirm('Are you sure you want to delete this course?')) {
-            $.ajax({
-                url: '@Url.Action("DeleteCourse", "Course")',
-                method: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({ id: courseId }),
-                success: function (response) {
-                    location.reload(); // Refresh page after deletion
-                },
-                error: function () {
-                    alert('Failed to delete course.');
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    $(document).ready(function() {
+        // Delete course functionality
+        $(document).on('click', '#deleteCourse', function() {
+            const row = $(this).closest('tr');
+            const courseCode = row.find('td:first').text();
+            const courseTitle = row.find('td:nth-child(2)').text();
+            
+            Swal.fire({
+                title: 'Confirm Deletion',
+                html: `Are you sure you want to delete <strong>${courseCode} - ${courseTitle}</strong>?<br><br>
+                      <span class="text-danger">This action cannot be undone!</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#273F4F',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel',
+                width: '500px'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("DeleteCourse", "Course")',
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ code: courseCode }),
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    title: 'Deleted!',
+                                    text: response.message,
+                                    icon: 'success',
+                                    confirmButtonColor: '#273F4F'
+                                }).then(() => {
+                                    // Remove the row from the table
+                                    row.fadeOut(300, function() {
+                                        $(this).remove();
+                                        // If no more rows, show "No courses" message
+                                        if ($('#programTableBody tr').length === 0) {
+                                            $('#programTableBody').append(
+                                                `<tr><td colspan="8" class="no-courses">No courses found.</td></tr>`
+                                            );
+                                        }
+                                    });
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error!',
+                                    text: response.error,
+                                    icon: 'error',
+                                    confirmButtonColor: '#273F4F'
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire({
+                                title: 'Error!',
+                                text: xhr.responseJSON?.error || 'An error occurred while deleting the course.',
+                                icon: 'error',
+                                confirmButtonColor: '#273F4F'
+                            });
+                        }
+                    });
                 }
             });
-        }
-    }
-</script>
-
-</body>
-</html>
+        });
+    });
+    </script>
+}

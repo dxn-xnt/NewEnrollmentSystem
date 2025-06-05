@@ -1,47 +1,31 @@
-﻿namespace EnrollmentSystem.Models
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
 
+namespace Enrollment_System.Models
 {
-
-    using System;
-
-    using System.Collections.Generic;
-
-    using System.Linq;
-
-    using System.Web;
-
     public class Student
-
     {
-
-        public int Stud_Id { get; set; }
-
-        public string Stud_Lname { get; set; }
-
-        public string Stud_Fname { get; set; }
-
-        public string Stud_Mname { get; set; }
-
-        public DateTime Stud_Dob { get; set; }
-
-        public string Stud_Contact { get; set; }
-
-        public string Stud_Email { get; set; }
-
-        public string Stud_Address { get; set; }
-
-        public string Stud_Password { get; set; }
-
-        public DateTime Created_At { get; set; }
-
-        public int Stud_Code { get; set; }
-
+        public int Id { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string MiddleName { get; set; }
+        public string HomeAddress { get; set; }
+        public string CityAddress { get; set; }
+        public DateTime Birthdate { get; set; }
+        public string District { get; set; }
+        public string Contact { get; set; }
+        public string Email { get; set; }
+        public int YearLevel { get; set; }
+        public int Semester { get; set; }
+        public string Program { get; set; }
+        public string Major { get; set; }
+        public Boolean IsFirstGen { get; set; }
+        public string Status { get; set; }
+        public string Password { get; set; }
+        public string ProgramCode { get; set; }
+        public string BlockSection { get; set; }
+        
     }
-
-
-
-
-
-
-
 }

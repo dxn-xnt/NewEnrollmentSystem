@@ -1,25 +1,18 @@
-﻿namespace EnrollmentSystem.Models
+using System;
+
+namespace Enrollment_System.Models
 {
-    using System;
     public class Enrollment
     {
-        public int Enrol_Id { get; set; }
-
-        public string Enrol_Status { get; set; }
-
-        public DateTime Enrol_Date { get; set; }
-
-        public string Enrol_Yr_Level { get; set; }
-
-        public string Enrol_Sem { get; set; }
-
-        public int? Stud_Id { get; set; }
-
-        public string Crs_Code { get; set; }
-
-        public string Ay_Code { get; set; }
-        
-        public string Stud_Fname { get; set; }
-        public string Stud_Lname { get; set; }
+        public int Id { get; set; }
+        public string Status { get; set; }
+        public string Date { get; set; }
+        public int YearLevel { get; set; }
+        public int Semester { get; set; }
+        public int StudentId { get; set; }
+        public string AcademicYear { get; set; }
+        public string StudentName { get; set; }
+        public string Program { get; set; }
+        public string ProgramName { get; set; }
     }
 }

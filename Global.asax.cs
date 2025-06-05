@@ -5,9 +5,9 @@ using System.Web;
 using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
-using EnrollmentSystem.Controllers.Service;
+using Enrollment_System.Controllers.Service;
 
-namespace EnrollmentSystem
+namespace Enrollment_System
 {
     public class MvcApplication : System.Web.HttpApplication
     {

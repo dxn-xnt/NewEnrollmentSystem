@@ -2,143 +2,153 @@
 using System.Collections.Generic;
 using System.Configuration;
 using System.Web.Mvc;
-using EnrollmentSystem.Models;
+using Enrollment_System.Models;
 using Npgsql;
+using Enrollment_System.Controllers.Service;
 
-namespace EnrollmentSystem.Controllers
+namespace Enrollment_System.Controllers
 {
     public class CourseController : Controller
     {
         private readonly string _connectionString;
 
-        public CourseController()
+        public CourseController(BaseControllerServices baseController)
         {
-            _connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["Enrollment"].ConnectionString;
+            _connectionString = System.Configuration.ConfigurationManager.ConnectionStrings["DbConnection"].ConnectionString;
         }
 
-        public ActionResult Course()
+        public ActionResult Index()
         {
-            var courses = GetCoursesFromDatabase(); 
-            return View("~/Views/Admin/Courses.cshtml", courses);
+            var courses = GetCoursesFromDatabase();
+            ViewBag.Prerequisites = GetPrerequisitesFromDatabase();
+            return View("~/Views/Admin/Courses.cshtml",courses);
         }
-        [HttpPost]
-        public JsonResult DeleteCourse(string id)
-        {
-            if (string.IsNullOrEmpty(id))
-                return Json(new { success = false, message = "Invalid course ID." });
-
-            try
-            {
-                using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings["Enrollment"].ConnectionString))
-                {
-                    conn.Open();
-                    using (var cmd = new NpgsqlCommand("DELETE FROM course WHERE crs_code = @id", conn))
-                    {
-                        cmd.Parameters.AddWithValue("@id", id);
-                        int rowsAffected = cmd.ExecuteNonQuery();
-                        if (rowsAffected > 0)
-                        {
-                            return Json(new { success = true, message = "Course deleted successfully." });
-                        }
-                        else
-                        {
-                            return Json(new { success = false, message = "Course not found." });
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Error deleting course: " + ex.Message });
-            }
-        }
-        [HttpGet]
-        public JsonResult GetAllCoursesForDropdown()
-        {
-            var courses = new List<dynamic>();
-
-            using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings["Enrollment"].ConnectionString))
-            {
-                conn.Open();
-                using (var cmd = new NpgsqlCommand("SELECT crs_code, crs_title FROM course ORDER BY crs_code", conn))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            courses.Add(new
-                            {
-                                id = reader.GetString(0),
-                                text = $"{reader.GetString(0)} - {reader.GetString(1)}"
-                            });
-                        }
-                    }
-                }
-            }
-
-            return Json(courses, JsonRequestBehavior.AllowGet);
-        }
-        [HttpPost]
-        public ActionResult UpdateCourse(string crsCode, string crsTitle, string preqCrsCode, decimal crsUnits, int crsLec, int crsLab)
-        {
-            try
-            {
-                using (var conn = new NpgsqlConnection(ConfigurationManager.ConnectionStrings["Enrollment"].ConnectionString))
-                {
-                    conn.Open();
-                    using (var cmd = new NpgsqlCommand(@"
-                UPDATE course SET 
-                    crs_title = @title,
-                    preq_crs_code = @prereq,
-                    crs_units = @units,
-                    crs_lec = @lec,
-                    crs_lab = @lab
-                WHERE crs_code = @code", conn))
-                    {
-                        cmd.Parameters.AddWithValue("@code", crsCode);
-                        cmd.Parameters.AddWithValue("@title", crsTitle);
-                        cmd.Parameters.AddWithValue("@prereq", string.IsNullOrEmpty(preqCrsCode) ? (object)DBNull.Value : preqCrsCode);
-                        cmd.Parameters.AddWithValue("@units", crsUnits);
-                        cmd.Parameters.AddWithValue("@lec", crsLec);
-                        cmd.Parameters.AddWithValue("@lab", crsLab);
-
-                        int rowsAffected = cmd.ExecuteNonQuery();
-
-                        if (rowsAffected > 0)
-                        {
-                            return Json(new { success = true, message = "Course updated." });
-                        }
-                        else
-                        {
-                            return Json(new { success = false, message = "Course not found." });
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                return Json(new { success = false, message = "Error: " + ex.Message });
-            }
-        }
-
-        // GET: /Course/Create
-        public ActionResult Create()
-        {
-            return View("~/Views/Admin/AddProgram.cshtml");
-        }
-
+      
         // GET: /Course/Edit/{id}
         public ActionResult Edit(string id)
         {
             var course = GetCourseById(id);
             if (course == null) return HttpNotFound();
 
-            return View("~/Views/Admin/EditProgram.cshtml", course);
+            return View("~/Views/Admin/EditCourse.cshtml", course);
+        }
+        
+        [HttpPost]
+        [Route("/Admin/Course/Delete")]
+        public ActionResult DeleteCourse(string code)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(code))
+                {
+                    return Json(new { 
+                        success = false, 
+                        error = "Course code is required",
+                        field = "general"
+                    });
+                }
+
+                using (var db = new NpgsqlConnection(_connectionString))
+                {
+                    db.Open();
+                    using (var transaction = db.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 1. Check if course exists
+                            var courseCheckCmd = new NpgsqlCommand(
+                                "SELECT COUNT(*) FROM COURSE WHERE CRS_CODE = @code", 
+                                db, transaction);
+                            courseCheckCmd.Parameters.AddWithValue("@code", code);
+                            
+                            if (Convert.ToInt32(courseCheckCmd.ExecuteScalar()) == 0)
+                            {
+                                return Json(new { 
+                                    success = false, 
+                                    error = "Course not found",
+                                    field = "Course Code"
+                                });
+                            }
+
+                            // 2. Check if course is used as a prerequisite
+                            var prereqCheckCmd = new NpgsqlCommand(
+                                "SELECT COUNT(*) FROM PREREQUISITE WHERE PREQ_CRS_CODE = @code", 
+                                db, transaction);
+                            prereqCheckCmd.Parameters.AddWithValue("@code", code);
+                            
+                            if (Convert.ToInt32(prereqCheckCmd.ExecuteScalar()) > 0)
+                            {
+                                return Json(new { 
+                                    success = false, 
+                                    error = "Cannot delete course because it's used as a prerequisite for other courses",
+                                    field = "Course Code"
+                                });
+                            }
+
+                            // 3. Check if course is assigned to any curriculum
+                            var curriculumCheckCmd = new NpgsqlCommand(
+                                "SELECT COUNT(*) FROM CURRICULUM_COURSE WHERE CRS_CODE = @code", 
+                                db, transaction);
+                            curriculumCheckCmd.Parameters.AddWithValue("@code", code);
+                            
+                            if (Convert.ToInt32(curriculumCheckCmd.ExecuteScalar()) > 0)
+                            {
+                                return Json(new { 
+                                    success = false, 
+                                    error = "Cannot delete course because it's assigned to one or more curricula",
+                                    field = "Course Code"
+                                });
+                            }
+
+                            // 4. Delete the course
+                            var deleteCmd = new NpgsqlCommand(
+                                "DELETE FROM COURSE WHERE CRS_CODE = @code", 
+                                db, transaction);
+                            deleteCmd.Parameters.AddWithValue("@code", code);
+                            
+                            int rowsAffected = deleteCmd.ExecuteNonQuery();
+
+                            if (rowsAffected == 0)
+                            {
+                                transaction.Rollback();
+                                return Json(new { 
+                                    success = false, 
+                                    error = "Failed to delete course",
+                                    field = "general"
+                                });
+                            }
+
+                            transaction.Commit();
+                            return Json(new {
+                                success = true,
+                                message = "Course deleted successfully"
+                            });
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            return Json(new { 
+                                success = false, 
+                                error = ex.Message,
+                                field = "general"
+                            });
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new { 
+                    success = false, 
+                    error = ex.Message,
+                    field = "general"
+                });
+            }
         }
 
-        // GET: /Course/GetAllCourses
+        // GET: /Course/GetAll
         [HttpGet]
-        public JsonResult GetAllCourses(string progCode = null, string ayCode = null)
+        public JsonResult GetAllCourses()
         {
             var courses = new List<dynamic>();
             try
@@ -146,19 +156,7 @@ namespace EnrollmentSystem.Controllers
                 using (var db = new NpgsqlConnection(_connectionString))
                 {
                     db.Open();
-                    using (var cmd = new NpgsqlCommand(@"
-                        SELECT 
-                            c.crs_code, 
-                            c.crs_title, 
-                            COALESCE(cat.ctg_name, 'General') AS category,
-                            COALESCE(p.preq_crs_code, 'None') AS prerequisite,
-                            c.crs_units, 
-                            c.crs_lec, 
-                            c.crs_lab
-                        FROM course c
-                        LEFT JOIN course_category cat ON c.ctg_code = cat.ctg_code
-                        LEFT JOIN prerequisite p ON p.crs_code = c.crs_code
-                    ", db))
+                    using (var cmd = new NpgsqlCommand("SELECT CRS_CODE, CRS_TITLE FROM COURSE", db))
                     {
                         using (var reader = cmd.ExecuteReader())
                         {
@@ -166,13 +164,8 @@ namespace EnrollmentSystem.Controllers
                             {
                                 courses.Add(new
                                 {
-                                    code = reader["crs_code"].ToString(),
-                                    title = reader["crs_title"].ToString(),
-                                    category = reader["category"].ToString(),
-                                    prerequisite = reader["prerequisite"].ToString(),
-                                    units = reader["crs_units"] != DBNull.Value ? Convert.ToDecimal(reader["crs_units"]) : 0,
-                                    lec = reader["crs_lec"] != DBNull.Value ? Convert.ToInt32(reader["crs_lec"]) : 0,
-                                    lab = reader["crs_lab"] != DBNull.Value ? Convert.ToInt32(reader["crs_lab"]) : 0
+                                    code = reader["CRS_CODE"].ToString(),
+                                    title = reader["CRS_TITLE"].ToString()
                                 });
                             }
                         }
@@ -181,13 +174,39 @@ namespace EnrollmentSystem.Controllers
             }
             catch (Exception ex)
             {
-                // Log exception or handle as needed
+                // Log exception
                 Console.WriteLine($"Error fetching courses: {ex.Message}");
             }
 
             return Json(courses, JsonRequestBehavior.AllowGet);
         }
+        
+        private List<Prerequisite> GetPrerequisitesFromDatabase()
+        {
+            var prerequisites = new List<Prerequisite>();
 
+            using (var conn = new NpgsqlConnection(_connectionString))
+            {
+                conn.Open();
+                using (var cmd = new NpgsqlCommand("SELECT \"crs_code\", \"preq_crs_code\" FROM \"prerequisite\"", conn))
+                {
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            prerequisites.Add(new Prerequisite
+                            {
+                                CourseCode = reader.GetString(0),
+                                PrerequisiteCourseCode = reader.GetString(1)
+                            });
+                        }
+                    }
+                }
+            }
+
+            return prerequisites;
+        }
+        
         private List<Course> GetCoursesFromDatabase()
         {
             var courses = new List<Course>();
@@ -196,17 +215,16 @@ namespace EnrollmentSystem.Controllers
             {
                 conn.Open();
                 using (var cmd = new NpgsqlCommand(@"
-                    SELECT 
-                        c.crs_code, 
-                        c.crs_title, 
-                        COALESCE(cat.ctg_name, 'General') AS category,
-                        p.preq_crs_code,
-                        c.crs_units, 
-                        c.crs_lec, 
-                        c.crs_lab
-                    FROM course c
-                    LEFT JOIN course_category cat ON c.ctg_code = cat.ctg_code
-                    LEFT JOIN prerequisite p ON p.crs_code = c.crs_code", conn))
+                    SELECT DISTINCT
+                        c.CRS_CODE, 
+                        c.CRS_TITLE, 
+                        COALESCE(cat.CTG_NAME, 'General') AS Category,
+                        c.CRS_UNITS, 
+                        c.CRS_LEC, 
+                        c.CRS_LAB
+                    FROM COURSE c
+                    LEFT JOIN COURSE_CATEGORY cat ON c.CTG_CODE = cat.CTG_CODE
+                    LEFT JOIN PREREQUISITE p ON p.CRS_CODE = c.CRS_CODE", conn))
                 {
                     using (var reader = cmd.ExecuteReader())
                     {
@@ -214,13 +232,12 @@ namespace EnrollmentSystem.Controllers
                         {
                             courses.Add(new Course
                             {
-                                Crs_Code = reader["crs_code"]?.ToString(),
-                                Crs_Title = reader["crs_title"]?.ToString(),
-                                Ctg_Name = reader["category"]?.ToString(),
-                                Preq_Crs_Code = reader["preq_crs_code"]?.ToString(),
-                                Crs_Units = reader["crs_units"] != DBNull.Value ? Convert.ToDecimal(reader["crs_units"]) : 0,
-                                Crs_Lec = reader["crs_lec"] != DBNull.Value ? Convert.ToInt32(reader["crs_lec"]) : 0,
-                                Crs_Lab = reader["crs_lab"] != DBNull.Value ? Convert.ToInt32(reader["crs_lab"]) : 0
+                                Code = reader["CRS_CODE"]?.ToString(),
+                                Title = reader["CRS_TITLE"]?.ToString(),
+                                CategoryName = reader["Category"]?.ToString(),
+                                Units = reader["CRS_UNITS"] != DBNull.Value ? Convert.ToInt32(reader["CRS_UNITS"]) : 0,
+                                LecHours = reader["CRS_LEC"] != DBNull.Value ? Convert.ToInt32(reader["CRS_LEC"]) : 0,
+                                LabHours = reader["CRS_LAB"] != DBNull.Value ? Convert.ToInt32(reader["CRS_LAB"]) : 0
                             });
                         }
                     }
@@ -232,10 +249,7 @@ namespace EnrollmentSystem.Controllers
 
         private object GetCourseById(string id)
         {
-            // Implement logic to fetch single course by ID
-            // For now, just returning null
             return null;
         }
-        
     }
 }

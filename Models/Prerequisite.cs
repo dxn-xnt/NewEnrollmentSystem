@@ -1,8 +1,8 @@
-﻿namespace EnrollmentSystem.Models
+namespace Enrollment_System.Models
 {
     public class Prerequisite
     {
-        public string Crs_Code { get; set; }         // Foreign Key to Course
-        public string Preq_Crs_Code { get; set; } 
+        public string CourseCode { get; set; }
+        public string PrerequisiteCourseCode { get; set; }
     }
 }

@@ -1,0 +1,106 @@
+@{
+    ViewData["Title"] = "Student Sign Up";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    @Styles.Render("~/Content/signin.css")
+    @Scripts.Render("~/bundles/modernizr")
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+<section class="register-section">
+    @if (!string.IsNullOrEmpty(ViewBag.ErrorMessage as string))
+    {
+        <div class="alert alert-danger text-center mb-4">
+            @ViewBag.ErrorMessage
+        </div>
+    }
+    <div class="student-form">
+        <div id="signupForm">
+            <h1>Create Student Account</h1>
+
+            <div class="input-bar">
+                @Html.Label("StudentID", "Student ID", new { @class = "form-label" })
+                @Html.TextBox("StudentID", null, new { @class = "form-control", placeholder = "Student ID" })
+                <p class="error-label">Incorrect Password</p>
+            </div>
+
+            <div class="input-bar">
+                @Html.Label("Birthdate", "Birth Date", new { @class = "form-label" })
+                @Html.TextBox("Birthdate", null, new { @class = "form-control", type = "date" })
+                <p class="error-label">Incorrect Password</p>
+            </div>
+
+            <div class="name-fields-grid">
+                <div class="input-bar">
+                    @Html.Label("LastName", "Last Name", new { @class = "form-label" })
+                    @Html.TextBox("LastName", null, new { @class = "form-control", placeholder = "Last Name" })
+                    <p class="error-label">Incorrect Password</p>
+                </div>
+                <div class="input-bar">
+                    @Html.Label("FirstName", "First Name", new { @class = "form-label" })
+                    @Html.TextBox("FirstName", null, new { @class = "form-control", placeholder = "First Name" })
+                    <p class="error-label">Incorrect Password</p>
+                </div>
+                <div class="input-bar">
+                    @Html.Label("MiddleName", "Middle Name", new { @class = "form-label" })
+                    @Html.TextBox("MiddleName", null, new { @class = "form-control", placeholder = "Middle Name" })
+                    <p class="error-label">Incorrect Password</p>
+                </div>
+            </div>
+
+            <div class="input-bar">
+                @Html.Label("HomeAddress", "Home Address", new { @class = "form-label" })
+                @Html.TextBox("HomeAddress", null, new { @class = "form-control", placeholder = "Address" })
+                <p class="error-label">Incorrect Password</p>
+            </div>
+
+            <div class="fields-grid">
+                <div class="input-bar">
+                    @Html.Label("Contact", "Contact Number", new { @class = "form-label" })
+                    @Html.TextBox("Contact", null, new { @class = "form-control", placeholder = "Contact" })
+                    <p class="error-label">Incorrect Password</p>
+                </div>
+                <div class="input-bar">
+                    @Html.Label("Email", "Email", new { @class = "form-label" })
+                    @Html.TextBox("Email", null, new { @class = "form-control", placeholder = "Email", type = "email" })
+                    <p class="error-label">Incorrect Password</p>
+                </div>
+            </div>
+
+            <div class="fields-grid">
+                <div class="input-bar">
+                    @Html.Label("Password", "Password", new { @class = "form-label" })
+                    @Html.Password("Password", null, new { @class = "form-control", placeholder = "Password" })
+                </div>
+                <div class="input-bar">
+                    @Html.Label("ConfirmPassword", "Confirm Password", new { @class = "form-label" })
+                    @Html.Password("ConfirmPassword", null, new { @class = "form-control", placeholder = "Confirm Password" })
+                    <p class="error-label">Incorrect Password</p>
+                </div>
+            </div>
+
+            <div class="input-bar">
+                <input type="submit" class="submit-btn" id="submitButton" value="Create Account">
+            </div>
+
+            <div class="account-toggle">
+                <p>Already have an account? <a href="@Url.Action("StudentLogIn", "Account")" id="showSignin">Sign In</a></p>
+            </div>
+        </div>
+    </div>
+</section>
+<script src="~/Scripts/JQuery/jquery.js"></script>
+<script src="~/Scripts/MyScript/SignUp.js"></script>
+</body>
+</html>

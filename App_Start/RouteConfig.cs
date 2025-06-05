@@ -1,252 +1,209 @@
-﻿﻿using System.Web.Mvc;
+using System.Web.Mvc;
 using System.Web.Routing;
 
-
-namespace EnrollmentSystem
+namespace Enrollment_System
 {
     public class RouteConfig
     {
-        
         public static void RegisterRoutes(RouteCollection routes)
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-
-            // Add this specific route before the default route
-            routes.MapRoute(
-                name: "TeacherClassesRoute",
-                url: "Teacher/Classes",
-                defaults: new { controller = "Teacher", action = "Classes" }
-            );
-            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-
-            // Add this specific route before the default route
-            routes.MapRoute(
-                name: "TeacherDashboardRoute",
-                url: "Teacher/Dashboard",
-                defaults: new { controller = "Teacher", action = "Dashboard" }
-            );
-            routes.MapRoute(
-                name: "GetCourse",
-                url: "AddProgram/GetAllCourses/{id}",
-                defaults: new { controller = "AddProgram", action = "GetAllCourses", id = UrlParameter.Optional }
-            );
-            routes.MapRoute(
-                    name: "GetAllCourse",
-                    url: "CurriculumCourse/GetAllCourses/{id}",
-                    defaults: new { controller = "CurriculumCourse", action = "GetAllCourses", id = UrlParameter.Optional }
-                );
             
-            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-        
-            // Add this specific route before the default route
+            //Enrollments
+            routes.MapRoute(
+                name: "ProgramHeadEnrollmentListRoute",
+                url: "Head/Enrollment",
+                defaults: new { controller = "Enrollment", action = "Index" }
+            );
+            routes.MapRoute(
+                name: "ProgramHeadApproveEnrollmentRoute",
+                url: "Head/Enrollment/ApproveEnrollment",
+                defaults: new { controller = "Enrollment", action = "ApproveEnrollment" }
+            );
+            routes.MapRoute(
+                name: "ProgramHeadDeclineEnrollmentRoute",
+                url: "Admin/Enrollment/DeclineEnrollment",
+                defaults: new { controller = "Enrollment", action = "DeclineEnrollment" }
+            );
+            routes.MapRoute(
+                name: "ProgramHeadEnrollmentViewRoute",
+                url: "Admin/Enrollment/View",
+                defaults: new { controller = "Enrollment", action = "GetEnrolledCoursesWithSchedules" }
+            );
+            routes.MapRoute(
+                name: "ProgramHeadEnrollmentStudentViewRoute",
+                url: "Admin/Enrollment/ViewStudent",
+                defaults: new { controller = "Enrollment", action = "GetEnrollmentDetailsFromDatabase" }
+            );
+            routes.MapRoute(
+                name: "ProgramHeadSetEnrollmentRoute",
+                url: "Admin/Enrollment/SetEnrollmentPeriod",
+                defaults: new { controller = "Enrollment", action = "SetEnrollmentPeriod" }
+            );
+            routes.MapRoute(
+                name: "ProgramHeadEndEnrollmentRoute",
+                url: "Admin/Enrollment/EndEnrollmentPeriod",
+                defaults: new { controller = "Enrollment", action = "EndEnrollmentPeriod" }
+            );
+            routes.MapRoute(
+                name: "ProgramHeadGetEnrollmentStatusRoute",
+                url: "Admin/Enrollment/GetCurrentEnrollmentPeriod",
+                defaults: new { controller = "Enrollment", action = "GetCurrentEnrollmentPeriod" }
+            );
+            
+            //Admin Routes
             routes.MapRoute(
                 name: "ProgramHeadClassManagementRoute",
-                url: "Head/ManageClass",
-                defaults: new { controller = "ProgramHead", action = "ClassManagement" }
+                url: "Admin/ManageClass",
+                defaults: new { controller = "CourseManagement", action = "ClassManagement" }
             );
-            
-            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-        
-            // Add this specific route before the default route
             routes.MapRoute(
                 name: "ProgramHeadStudentManagementRoute",
-                url: "Head/ManageStudent",
-                defaults: new { controller = "ProgramHead", action = "StudentManagement" }
+                url: "Admin/ManageStudent",
+                defaults: new { controller = "CourseManagement", action = "StudentManagement" }
             );
-            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-        
-            // Add this specific route before the default route
             routes.MapRoute(
                 name: "ProgramHeadSetScheduleListRoute",
-                url: "Head/Schedules",
-                defaults: new { controller = "ProgramHead", action = "Schedule" }
+                url: "Admin/Schedules",
+                defaults: new { controller = "CourseManagement", action = "Schedules" }
             );
-            
-            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-        
-            // Add this specific route before the default route
             routes.MapRoute(
-                name: "ProgramHeadEnrollmentApprovalListRoute",
-                url: "Head/EnrollmentApproval",
-                defaults: new { controller = "ProgramHead", action = "Approval" }
+                name: "ProgramHeadSaveScheduleRoute",
+                url: "Admin/Schedules/SaveSchedule",
+                defaults: new { controller = "CourseManagement", action = "SaveSchedule" }
             );
-
-            
-                        
-            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-        
-            // Add this specific route before the default route
+            routes.MapRoute(
+                name: "ProgramHeadGetScheduleRoute",
+                url: "Admin/Schedules/GetSchedule",
+                defaults: new { controller = "CourseManagement", action = "GetSchedule" }
+            );
+            routes.MapRoute(
+                name: "ProgramHeadGetCurriculumCoursesRoute",
+                url: "Head/Curriculum/GetCurriculumCourses",
+                defaults: new { controller = "CourseManagement", action = "GetCurriculumCourses" }
+            );
             routes.MapRoute(
                 name: "ProgramHeadViewStudentListRoute",
-                url: "Head/Students",
-                defaults: new { controller = "ProgramHead", action = "Students" }
+                url: "Admin/Students",
+                defaults: new { controller = "CourseManagement", action = "Students" }
             );
-            
-            
-            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-        
-            // Add this specific route before the default route
-            routes.MapRoute(
-                name: "ProgramHeadDashboardRoute",
-                url: "Head/Dashboard",
-                defaults: new { controller = "ProgramHead", action = "Dashboard" }
-            );
-            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
-            
-            
-            routes.MapRoute(
-                name: "LoginFacultyRoute",
-                url: "Auth/LoginFaculty",
-                defaults: new { controller = "Auth", action = "LoginFaculty" }
-            );
-            
             routes.MapRoute(
                 name: "AdminEditCourseRoute",
                 url: "Admin/Course/EditCourse",
-                defaults: new { controller = "Admin", action = "Admin_EditCourse" }
+                defaults: new { controller = "Course", action = "Delete" }
+            );
+            routes.MapRoute(
+                name: "MainAdminRoute",
+                url: "Admin/Dashboard",
+                defaults: new { controller = "Admin", action = "Dashboard" }
             );
             
+            //Course Routes
             routes.MapRoute(
                 name: "AdminAddCourseRoute",
                 url: "Admin/Course/AddCourse",
-                defaults: new { controller = "AddProgram", action = "Index" }
+                defaults: new { controller = "AddCourse", action = "Index" }
             );
-            
-            // Add this specific route before the default route
             routes.MapRoute(
                 name: "AdminCourseRoute",
                 url: "Admin/Course",
                 defaults: new { controller = "Course", action = "Index" }
-            );
+            ); 
+            routes.MapRoute(
+                name: "AdminDeleteCourseRoute",
+                url: "Admin/Course/Delete",
+                defaults: new { controller = "Course", action = "DeleteCourse" }
+            ); 
             
-            // Add this specific route before the default route
+            //Curriculum Routes
             routes.MapRoute(
                 name: "AdminCurriculumRoute",
                 url: "Admin/Curriculum",
-                defaults: new { controller = "Admin", action = "Admin_Curriculum" }
-            );
-            
+                defaults: new { controller = "Curriculum", action = "Index" }
+            ); 
             routes.MapRoute(
-                name: "SignUpEntry",
-                url: "Auth/Entry",
-                defaults: new { controller = "Auth", action = "Entry" }
-            );
-            
-            
-        
-            // Add this specific route before the default route
+                name: "AdminAssignCourseRoute",
+                url: "Admin/Curriculum/AssignCourses",
+                defaults: new { controller = "Curriculum", action = "AssignCourses" }
+            ); 
             routes.MapRoute(
-                name: "MainAdminRoute",
-                url: "Admin/Dashboard",
-                defaults: new { controller = "Admin", action = "MainAdmin" }
-            );
-            
-            
-        
-            // Add this specific route before the default route
+                name: "AdminUnassignCourseRoute",
+                url: "Admin/Curriculum/UnassignCourse",
+                defaults: new { controller = "Curriculum", action = "UnassignCourse" }
+            ); 
             routes.MapRoute(
-                name: "MainSchedule;eRoute",
-                url: "Home/Schedule",
-                defaults: new { controller = "Main", action = "Student_Schedule" }
-            );
+                name: "AdminGetCourseRoute",
+                url: "Admin/Curriculum/GetCurriculumCourses",
+                defaults: new { controller = "Curriculum", action = "GetCurriculumCourses" }
+            ); 
             
-            
-            // Add this specific route before the default route
+            //Student Routes
             routes.MapRoute(
-                name: "MainViewGradeRoute",
-                url: "Home/Grades",
-                defaults: new { controller = "Main", action = "Student_Grade" }
-            );
-            
+                name: "StudentGetCurriculumRoute",
+                url: "Student/Enrollment/GetCurriculum",
+                defaults: new { controller = "Student", action = "GetCurriculum" }
+            );  
             routes.MapRoute(
-                name: "LoginStudentRoute",
-                url: "Auth/LoginStudent",
-                defaults: new { controller = "Auth", action = "LoginStudent" }
+                name: "StudentAvailableCourseRoute",
+                url: "Student/Enrollment/GetAvailableCourse",
+                defaults: new { controller = "Student", action = "GetAvailableCourse" }
+            ); 
+            routes.MapRoute(
+                name: "StudentScheduleRoute",
+                url: "Student/Schedule",
+                defaults: new { controller = "Student", action = "Schedule" }
             );
-            
-          
-            // Add this specific route before the default route
+            routes.MapRoute(
+                name: "StudentViewGradeRoute",
+                url: "Student/Grades",
+                defaults: new { controller = "Student", action = "Grade" }
+            );
             routes.MapRoute(
                 name: "StudentEnrollmentRoute",
-                url: "Home/Enrollment",
-                defaults: new { controller = "StudentEnrollment", action = "Student_Enrollment" }
+                url: "Student/Enrollment",
+                defaults: new { controller = "Student", action = "Enrollment" }
             );
-            
-            
-            
-            // Add this specific route before the default route
             routes.MapRoute(
-                name: "MainProfileRoute",
-                url: "Home/Profile",
-                defaults: new { controller = "Main", action = "Student_Profile" }
+                name: "StudentSubmitEnrollmentRoute",
+                url: "Student/Enrollment/SubmitForm",
+                defaults: new { controller = "Student", action = "Enroll" }
             );
-            
-           
-        
-            // Add this specific route before the default route
             routes.MapRoute(
-                name: "MainHomeRoute",
-                url: "Main/Home",
-                defaults: new { controller = "Main", action = "MainHome" }
+                name: "StudentProfileRoute",
+                url: "Student/Profile",
+                defaults: new { controller = "Student", action = "ProfileView" }
             );
-                        
+            routes.MapRoute(
+                name: "StudentRoute",
+                url: "Student/Dashboard",
+                defaults: new { controller = "Student", action = "Dashboard" }
+            );
             
-        
-            // Add this specific route before the default route
+            //Signin Routes
             routes.MapRoute(
                 name: "SignUpRoute",
-                url: "SignUp",
-                defaults: new { controller = "Login", action = "SignUp" }
+                url: "Account/SignUp",
+                defaults: new { controller = "Account", action = "SignUp" }
             );
             
-            
-            // Add this specific route before the default route
+            //Login Routes
             routes.MapRoute(
-                name: "LoginAdminRoute",
-                url: "Login/Admin",
-                defaults: new { controller = "Login", action = "LoginAdmin" }
+                name: "FacultyLoginRoute",
+                url: "Account/Faculty/Login",
+                defaults: new { controller = "Account", action = "FacultyLogIn" }
             );
-            
-            
-        
-            // Add this specific route before the default route
-            routes.MapRoute(
-                name: "LoginHeadRoute",
-                url: "Login/Head",
-                defaults: new { controller = "Login", action = "LoginHead" }
-            );
-
-            
-           
-            // Add this specific route before the default route
-            routes.MapRoute(
-                name: "LoginTeacherRoute",
-                url: "Login/Teacher",
-                defaults: new { controller = "Login", action = "LoginTeacher" }
-            );
-            
-            
-        
-            // Add this specific route before the default route
             routes.MapRoute(
                 name: "LoginRoute",
-                url: "Login/Student",
-                defaults: new { controller = "Login", action = "Login" }
+                url: "Account/Student/LogIn",
+                defaults: new { controller = "Account", action = "StudentLogIn" }
             );
             
+            //Default
             routes.MapRoute(
                 name: "Default",
-                url: "{controller}/{action}/{id}",
+                url: "",
                 defaults: new { controller = "Home", action = "Index", id = UrlParameter.Optional }
             );
-            routes.MapRoute(
-                name: "GetSubject",
-                url: "{ProgramHead}/{GetCoursesByProgramAndYear}/{id}",
-                defaults: new { controller = "ProgramHead", action = "GetCoursesByProgramAndYear", id = UrlParameter.Optional }
-            );
-         
-          
-            
         }
     }
 }

@@ -1,0 +1,208 @@
+@{
+    ViewBag.Title = "Class Schedule";
+    Layout = "~/Views/Shared/StudentHeader.cshtml";
+}
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Schedule - Enrollment System</title>
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .content-section {
+            padding: 30px;
+            flex-grow: 1;
+        }
+        /* Add specific styles for Class Schedule page if needed */
+        #scheduleDisplayArea {
+            display: none; /* Initially hidden */
+        }
+        .info-display-box {
+            background-color: #e9ecef; /* Light grey background */
+            padding: 15px;
+            border-radius: .3rem;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: #343a40; /* Darker text */
+        }
+    </style>
+</head>
+<body>
+    <div class="container content-section">
+        <h1 class="mb-4">Your Class Schedule</h1>
+        <p class="lead">Select the academic year and semester to view your class schedule for your current course.</p>
+
+        <div class="info-display-box">
+            Current Course: <span id="currentCourseDisplay">Bachelor of Science in Information Technology</span>
+        </div>
+
+        <div class="card mt-4 mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Select Term</h5>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="yearSelect" class="form-label">Select Year</label>
+                        <select class="form-select" id="yearSelect">
+                            <option value="" selected disabled>Choose Year...</option>
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year">3rd Year</option>
+                            <option value="4th Year">4th Year</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="semesterSelect" class="form-label">Select Semester</label>
+                        <select class="form-select" id="semesterSelect">
+                            <option value="" selected disabled>Choose Semester...</option>
+                            <option value="1st Semester">1st Semester</option>
+                            <option value="2nd Semester">2nd Semester</option>
+                            <option value="Summer">Summer</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <button type="button" class="btn btn-primary w-100" id="viewScheduleBtn">View Schedule</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="scheduleDisplayArea">
+            <div class="card mt-4">
+                <div class="card-body">
+                    <h5 class="card-title" id="scheduleTermTitle"></h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped mt-3">
+                            <thead>
+                                <tr>
+                                    <th>MIS CODE</th>
+                                    <th>COURSE CODE</th>
+                                    <th>DESCRIPTIVE TITLE</th>
+                                    <th>Time</th>
+                                    <th>Days</th>
+                                    <th>Lec</th>
+                                    <th>Lab</th>
+                                    <th>Units</th>
+                                    <th>Room</th>
+                                    <th>Instructor</th>
+                                </tr>
+                            </thead>
+                            <tbody id="scheduleTableBody">
+                                <tr>
+                                    <td>MIS-IT101</td>
+                                    <td>IT 101</td>
+                                    <td>Introduction to Programming</td>
+                                    <td>9:00 AM - 10:30 AM</td>
+                                    <td>Mon, Wed</td>
+                                    <td>3</td>
+                                    <td>0</td>
+                                    <td>3</td>
+                                    <td>RM 101</td>
+                                    <td>Prof. Smith</td>
+                                </tr>
+                                <tr>
+                                    <td>MIS-MATH202</td>
+                                    <td>MATH 202</td>
+                                    <td>Calculus II</td>
+                                    <td>11:00 AM - 12:30 PM</td>
+                                    <td>Tue, Thu</td>
+                                    <td>3</td>
+                                    <td>0</td>
+                                    <td>3</td>
+                                    <td>RM 205</td>
+                                    <td>Dr. Johnson</td>
+                                </tr>
+                                 <tr>
+                                    <td>MIS-IT102L</td>
+                                    <td>IT 102L</td>
+                                    <td>Data Structures (Lab)</td>
+                                    <td>1:00 PM - 3:00 PM</td>
+                                    <td>Fri</td>
+                                    <td>0</td>
+                                    <td>3</td>
+                                    <td>1</td>
+                                    <td>LAB 103</td>
+                                    <td>Prof. White</td>
+                                </tr>
+                                </tbody>
+                        </table>
+                    </div>
+                    <p class="card-text mt-4"><strong>Total Units:</strong> <span id="totalUnitsDisplay"></span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="~/Scripts/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Schedule Display Logic ---
+            const currentCourseDisplay = document.getElementById('currentCourseDisplay');
+            const yearSelect = document.getElementById('yearSelect');
+            const semesterSelect = document.getElementById('semesterSelect');
+            const viewScheduleBtn = document.getElementById('viewScheduleBtn');
+            const scheduleDisplayArea = document.getElementById('scheduleDisplayArea');
+            const scheduleTermTitle = document.getElementById('scheduleTermTitle');
+            const scheduleTableBody = document.getElementById('scheduleTableBody');
+            const totalUnitsDisplay = document.getElementById('totalUnitsDisplay'); // New element for total units
+
+            function calculateAndDisplayTotalUnits() {
+                let totalUnits = 0;
+                // Get all rows in the table body
+                const rows = scheduleTableBody.querySelectorAll('tr');
+                rows.forEach(row => {
+                    // Assuming 'Units' is the 8th column (index 7, as 0-indexed)
+                    // MIS CODE(0), COURSE CODE(1), DESCRIPTIVE TITLE(2), Time(3), Days(4), Lec(5), Lab(6), Units(7), Room(8), Instructor(9)
+                    const unitsCell = row.children[7]; 
+                    if (unitsCell) {
+                        const units = parseInt(unitsCell.textContent.trim());
+                        if (!isNaN(units)) {
+                            totalUnits += units;
+                        }
+                    }
+                });
+                totalUnitsDisplay.textContent = totalUnits;
+            }
+
+            viewScheduleBtn.addEventListener('click', function() {
+                const selectedYear = yearSelect.value;
+                const selectedSemester = semesterSelect.value;
+                const displayedCourse = currentCourseDisplay.textContent;
+
+                if (selectedYear === "" || selectedSemester === "") {
+                    alert('Please select Year and Semester.');
+                    return;
+                }
+
+                scheduleTermTitle.textContent = `${displayedCourse} - ${selectedYear} : ${selectedSemester} Schedule`;
+                
+                // Display the schedule area
+                scheduleDisplayArea.style.display = 'block';
+
+                // Calculate and display total units after showing the table
+                calculateAndDisplayTotalUnits();
+
+                // In a real application, after fetching new data for the schedule,
+                // you would call calculateAndDisplayTotalUnits() again to update the total.
+            });
+
+            // Initially calculate and display total units if the table is visible by default (not our case here, but good practice)
+            // Or if you decide to load default schedule on page load.
+            // calculateAndDisplayTotalUnits();
+        });
+    </script>
+</body>
+</html>

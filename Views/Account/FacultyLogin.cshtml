@@ -1,0 +1,63 @@
+@{
+    ViewData["Title"] = "Student Login";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    @Styles.Render("~/Content/signin.css")
+    @Scripts.Render("~/bundles/modernizr")
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        .account-toggle{
+            text-align: left;
+            margin-top: 5px;
+        }
+        #showSignup{
+            padding-top: 5px;
+            font-weight: normal;
+            text-align: right;
+            width: 100%;
+            color: black;
+        }
+    </style> 
+</head>
+<body>
+<section class="register-section">
+    <div class="student-form">
+        @Html.AntiForgeryToken()
+        <div id="signinForm">
+            <h1>Faculty Login</h1>
+            <div class="input-bar">
+                @Html.Label("FacultyID", "Faculty ID", new { @class = "form-label" })
+                @Html.TextBox("FacultyID", null, new { @class = "form-control", placeholder = "Faculty ID" })
+                <p class="error-label">Incorrect Password</p>
+            </div>
+
+            <div class="input-bar">
+                @Html.Label("FacultyPassword", "Password", new { @class = "form-label" })
+                @Html.Password("FacultyPassword", null, new { @class = "form-control", placeholder = "Password" })
+                <p class="error-label">Incorrect Password</p>
+            </div>
+
+            <div class="input-bar">
+                <input type="submit" class="submit-btn" id="submitButton" value="Sign In">
+            </div>
+            <div class="account-toggle">
+                <a href="@Url.Action("Index", "Home")" id="showSignup">Back to landing page</a>
+            </div>
+        </div>
+    </div>
+</section>
+<script src="~/Scripts/JQuery/jquery.js"></script>
+<script src="~/Scripts/MyScript/FacultyLogIn.js"></script>
+</body>
+</html>

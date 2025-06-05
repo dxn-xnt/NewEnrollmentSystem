@@ -1,127 +1,262 @@
+@model IEnumerable<Enrollment_System.Models.Program>
 @{
-Layout = "~/Views/Shared/_AdminHeader.cshtml";
+    Layout = "~/Views/Shared/AdminHeader.cshtml";
+    ViewBag.Title = "Manage Curriculum - Enrollment System";
+    
 }
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Manage Curriculum - Enrollment System</title>
-    <link rel="stylesheet" href="@Url.Content("~/Content/bootstrap.min.css")" />
+
+@section Styles {
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-        .content-section {
-            padding: 30px;
-            flex-grow: 1;
-            margin-top: 56px;
-        }
-        .program-card {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
-            margin-bottom: 20px;
-        }
-        #assignedCurriculumTable {
-            width: 100%;
-        }
-        .course-search {
-            margin-bottom: 15px;
-        }
-    </style>
-</head>
-<body>
+<style>
+    body {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .content-section {
+        padding: 30px;
+        flex-grow: 1;
+    }
+
+    .program-card {
+        background-color: #ffffff;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.25);
+        margin-bottom: 30px;
+    }
+
+    .course-list-container th {
+        background-color: #FE7743 !important;
+        color: white;
+        font-weight: 600;
+        padding: 12px 15px;
+        text-align: left;
+        position: sticky;
+        top: 0;
+    }
+    table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
+        margin-top: 15px;
+        font-size: 0.9rem;
+    }
+    
+    th {
+        background-color: #273F4F  !important;
+        color: white;
+        font-weight: 600;
+        padding: 12px 15px;
+        text-align: left;
+        position: sticky;
+        top: 0;
+    }
+
+    td {
+        padding: 10px 15px;
+        border-bottom: 1px solid #e0e0e0;
+        vertical-align: top;
+    }
+
+    tr:not(:first-child) {
+        border-top: 1px solid #e0e0e0;
+    }
+
+    tbody tr:nth-child(odd) {
+        background-color: #f8f8f8;
+    }
+
+   
+    .action-buttons .btn {
+        padding: 5px 10px;
+        font-size: 0.8rem;
+        margin: 2px;
+    }
+
+    thead {
+        box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    }
+
+    /* Responsive table container */
+    .table-responsive {
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid #ddd;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn {
+        border-radius: 0 !important;
+        font-weight: 500 !important;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    .btn-success {
+        background-color: #273F4F !important;
+        color: white !important;
+    }
+
+    .btn-primary {
+        background-color: #FE7743 !important;
+        border-color: #FE7743 !important;
+    }
+
+    .btn-outline-secondary {
+        background-color: white !important;
+        color: #6c757d !important;
+        border-color: #6c757d !important;
+    }
+
+    .no-courses {
+        text-align: center;
+        padding: 30px;
+        color: #6C757D;
+    }
+
+    .form-select {
+        border-radius: 0;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-header {
+        background-color: #273F4F;
+        color: white;
+    }
+</style>
+}
+
 <div class="container content-section">
     <h1 class="mb-4">Manage Curriculum</h1>
-    <p class="lead">Assign and manage curriculum for academic programs.</p>
 
     <div class="program-card">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-4">
-                <label for="programSelect" class="form-label">Select Program:</label>
-                <select class="form-select" id="programSelect" name="programSelect">
-                    <option value="" selected disabled>Choose Program...</option>
-                </select>
-            </div>
+        <!-- Program Selection -->
+        <div class="mb-4">
+            <label for="programSelect" class="form-label">Select Program:</label>
+            <select class="form-select" id="programSelect" name="programSelect">
+                <option value="" selected disabled>Choose Program...</option>
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var program in Model)
+                    {
+                        <option value="@program.Code">@program.Title</option>
+                    }
+                }
+                else
+                {
+                    <option disabled>No programs found</option>
+                }
+            </select>
+        </div>
+
+        <!-- Academic Filters -->
+        <div class="row g-3 mb-4">
+            <!-- Academic Year Dropdown -->
             <div class="col-md-4">
                 <label for="academicYearSelect" class="form-label">Academic Year:</label>
                 <select class="form-select" id="academicYearSelect" name="academicYearSelect">
                     <option value="" selected disabled>Choose Academic Year...</option>
+                    @{
+                        var academicYears = ViewBag.AcademicYears as List<Enrollment_System.Models.AcademicYear>;
+                        if (academicYears != null && academicYears.Any())
+                        {
+                            foreach (var year in academicYears)
+                            {
+                                <option value="@year.Code">@year.StartYear - @year.EndYear</option>
+                            }
+                        }
+                        else
+                        {
+                            <option disabled>No academic years available</option>
+                        }
+                    }
                 </select>
             </div>
-            <div class="col-md-4">
-                <label for="semesterSelect" class="form-label">Semester:</label>
-                <select class="form-select" id="semesterSelect" name="semesterSelect">
-                    <option value="" selected disabled>Choose Semester...</option>
-                    <option value="1st Semester">1st Semester</option>
-                    <option value="2nd Semester">2nd Semester</option>
-                </select>
-            </div>
+
+            <!-- Year Level Dropdown -->
             <div class="col-md-4">
                 <label for="yearLevelSelect" class="form-label">Year Level:</label>
                 <select class="form-select" id="yearLevelSelect" name="yearLevelSelect">
                     <option value="" selected disabled>Choose Year Level...</option>
-                    <option value="1st Year">1st Year</option>
-                    <option value="2nd Year">2nd Year</option>
-                    <option value="3rd Year">3rd Year</option>
-                    <option value="4th Year">4th Year</option>
+                    @{
+                        var yearLevels = ViewBag.YearLevels as List<Enrollment_System.Models.YearLevel>;
+                        if (yearLevels != null && yearLevels.Any())
+                        {
+                            foreach (var yearLevel in yearLevels)
+                            {
+                                <option value="@yearLevel.Id">@yearLevel.Title</option>
+                            }
+                        }
+                        else
+                        {
+                            <option disabled>No year levels available</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <!-- Semester Dropdown -->
+            <div class="col-md-4">
+                <label for="semesterSelect" class="form-label">Semester:</label>
+                <select class="form-select" id="semesterSelect" name="semesterSelect">
+                    <option value="" selected disabled>Choose Semester...</option>
+                    @{
+                        var semesters = ViewBag.Semesters as List<Enrollment_System.Models.Semester>;
+                        if (semesters != null && semesters.Any())
+                        {
+                            foreach (var sem in semesters)
+                            {
+                                <option value="@sem.Id">@sem.Name</option>
+                            }
+                        }
+                        else
+                        {
+                            <option disabled>No semesters available</option>
+                        }
+                    }
                 </select>
             </div>
         </div>
 
-        <button class="btn btn-success mt-3" data-bs-toggle="modal" data-bs-target="#assignCourseModal">Manage Courses</button>
-    </div>
-
-    <!-- Assigned Curriculum Table -->
-    <div id="assignedCurriculum" class="mt-5">
-        <h3>Assigned Curriculum</h3>
-
-        <!-- Filter Controls -->
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <label for="filterProgram" class="form-label">Filter by Program:</label>
-                <select class="form-select" id="filterProgram">
-                    <option value="">All Programs</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="filterSemester" class="form-label">Filter by Semester:</label>
-                <select class="form-select" id="filterSemester">
-                    <option value="">All Semesters</option>
-                    <option value="1st Semester">1st Semester</option>
-                    <option value="2nd Semester">2nd Semester</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <label for="filterAY" class="form-label">Filter by Academic Year:</label>
-                <select class="form-select" id="filterAY">
-                    <option value="">All Years</option>
-                </select>
+        <!-- Program Details Table -->
+        <div id="programDetailsTable" class="mt-4" style="display: none;">
+            <h4 id="selectedProgramTitle" class="mb-3"></h4>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Course Code</th>
+                            <th>Descriptive Title</th>
+                            <th>Prerequisite(s)</th>
+                            <th>Units</th>
+                            <th>Lec</th>
+                            <th>Lab</th>
+                            <th>Total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="programTableBody">
+                        <tr>
+                            <td colspan="8" class="no-courses">Select a program to view courses</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
-        <!-- Curriculum Table -->
-        <div class="table-responsive">
-            <table class="table table-bordered table-striped" id="assignedCurriculumTable">
-                <thead>
-                <tr>
-                    <th>Program</th>
-                    <th>Course Code</th>
-                    <th>Year Level</th>
-                    <th>Semester</th>
-                    <th>Academic Year</th>
-                </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+        <!-- Action Buttons -->
+        <div class="d-flex mt-4">
+            <button class="btn btn-success me-2" id="assignCourseBtn" data-bs-toggle="modal" data-bs-target="#assignCourseModal">
+                Assign Course
+            </button>
+            <button class="btn btn-outline-secondary" id="clearFiltersBtn" style="display: none;">
+                Clear Filters
+            </button>
         </div>
     </div>
 </div>
@@ -131,7 +266,7 @@ Layout = "~/Views/Shared/_AdminHeader.cshtml";
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="assignCourseModalLabel">Assign Courses</h5>
+                <h5 class="modal-title" id="assignCourseModalLabel">Assign Courses to Program</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -145,21 +280,21 @@ Layout = "~/Views/Shared/_AdminHeader.cshtml";
                         <p class="fw-bold" id="modalYearSemester">-</p>
                     </div>
                 </div>
-                <div class="course-search mb-3">
+                <div class="course-search">
                     <input type="text" class="form-control" id="courseSearch" placeholder="Search courses...">
                 </div>
                 <div class="course-list-container" style="max-height: 400px; overflow-y: auto;">
                     <table class="table">
                         <thead>
                         <tr>
-                            <th><input type="checkbox" id="toggleAll"></th>
+                            <th></th>
                             <th>Course Code</th>
                             <th>Title</th>
                             <th>Category</th>
-                            <th>Prerequisite</th>
+                            <th>Co-/Prerequisite</th>
                             <th>Units</th>
-                            <th>Lec</th>
-                            <th>Lab</th>
+                            <th>Lec Hours</th>
+                            <th>Lab Hours</th>
                         </tr>
                         </thead>
                         <tbody id="availableCoursesList"></tbody>
@@ -168,14 +303,315 @@ Layout = "~/Views/Shared/_AdminHeader.cshtml";
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="confirmAssign">Assign Selected</button>
+                <button type="button" class="btn btn-primary" id="confirmAssign">Assign Selected Courses</button>
             </div>
         </div>
     </div>
 </div>
 
-<script src="@Url.Content("~/Scripts/jquery-3.7.0.js")"></script>
-<script src="@Url.Content("~/Scripts/bootstrap.bundle.min.js")"></script>
-<script src="@Url.Content("~/Scripts/MyScript/Curriculum.js")"></script>
-</body>
-</html>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+            // Cache select elements
+            const $programSelect = $('#programSelect');
+            const $academicYearSelect = $('#academicYearSelect');
+            const $semesterSelect = $('#semesterSelect');
+            const $yearLevelSelect = $('#yearLevelSelect');
+            const $programDetailsTable = $('#programDetailsTable');
+            const $clearFiltersBtn = $('#clearFiltersBtn');
+            const $assignCourseModal = $('#assignCourseModal');
+            const $availableCoursesList = $('#availableCoursesList');
+            const $confirmAssign = $('#confirmAssign');
+            const currentFilter = {
+                program: '',
+                academicYear: ''
+            };
+
+            let allCourses = @Html.Raw(Json.Encode(ViewBag.Courses)) || [];
+            let prerequisitesLookup = @Html.Raw(Json.Encode(ViewBag.Prerequisites)) || [];
+
+            // Store selected courses in a Set
+            let selectedCoursesToAssign = new Set();
+
+            // Event listeners for filter changes
+            $programSelect.add($academicYearSelect).add($semesterSelect).add($yearLevelSelect)
+                .on('change', checkSelections);
+
+            // Clear filters button
+            $clearFiltersBtn.on('click', function () {
+                $programSelect.val('');
+                $academicYearSelect.val('');
+                $semesterSelect.val('');
+                $yearLevelSelect.val('');
+                $programDetailsTable.hide();
+                $(this).hide();
+                $('#selectedProgramTitle').text('');
+            });
+
+            // Load courses when selections are made
+            function checkSelections() {
+                const allSelected = $programSelect.val() &&
+                    $academicYearSelect.val() &&
+                    $semesterSelect.val() &&
+                    $yearLevelSelect.val();
+
+                if (allSelected) {
+                    $programDetailsTable.show();
+                    $clearFiltersBtn.show();
+                    $('#selectedProgramTitle').text(`Program: ${$programSelect.find('option:selected').text()}`);
+                    loadCurriculumCourses(); // Load courses
+                } else {
+                    $programDetailsTable.hide();
+                    $clearFiltersBtn.hide();
+                }
+            }
+
+            // Update modal title with selected values
+            $assignCourseModal.on('show.bs.modal', function () {
+                const programName = $programSelect.find('option:selected').text();
+                const academicYear = $academicYearSelect.find('option:selected').text();
+                const semester = $semesterSelect.find('option:selected').text();
+                const yearLevel = $yearLevelSelect.find('option:selected').text();
+
+                $('#modalProgramName').text(programName);
+                $('#modalYearSemester').text(`${yearLevel} - ${semester} (${academicYear})`);
+
+                // Reset search and show all courses
+                $('#courseSearch').val('');
+                renderCourses(allCourses);
+            });
+
+            // Render available courses
+            function renderCourses(courses) {
+                const $tableBody = $availableCoursesList;
+                $tableBody.empty();
+
+                if (courses.length === 0) {
+                    $tableBody.append('<tr><td colspan="8" class="text-center">No courses found</td></tr>');
+                    return;
+                }
+
+                const prerequisitesDict = {};
+                prerequisitesLookup.forEach(function (item) {
+                    if (!prerequisitesDict[item.CourseCode]) {
+                        prerequisitesDict[item.CourseCode] = [];
+                    }
+                    prerequisitesDict[item.CourseCode].push(item.PrerequisiteCourseCode);
+                });
+
+                courses.forEach(function (course) {
+                    const prereqs = prerequisitesDict[course.Code] || [];
+                    const prereqDisplay = prereqs.length > 0 ? prereqs.join(", ") : '-';
+                    $tableBody.append(`
+                <tr>
+                    <td><input type="checkbox" class="course-checkbox" value="${course.Code}"></td>
+                    <td>${course.Code}</td>
+                    <td>${course.Title}</td>
+                    <td>${course.CategoryCode}</td>
+                    <td>${prereqDisplay}</td>
+                    <td>${course.Units}</td>
+                    <td>${course.LecHours}</td>
+                    <td>${course.LabHours}</td>
+                </tr>
+            `);
+                });
+            }
+
+            // Search functionality
+            $('#courseSearch').on('input', function () {
+                const term = $(this).val().toLowerCase();
+                const filtered = allCourses.filter(course =>
+                    course.Code.toLowerCase().includes(term) ||
+                    course.Title.toLowerCase().includes(term) ||
+                    (course.CategoryCode && course.CategoryCode.toLowerCase().includes(term))
+                );
+                renderCourses(filtered);
+            });
+
+            // Checkbox handler
+            $availableCoursesList.on('change', '.course-checkbox', function () {
+                const courseCode = $(this).val();
+                if ($(this).is(':checked')) {
+                    selectedCoursesToAssign.add(courseCode);
+                } else {
+                    selectedCoursesToAssign.delete(courseCode);
+                }
+            });
+
+            // Assign courses
+            $confirmAssign.on('click', function () {
+                selectedCoursesToAssign.clear();
+                $('#availableCoursesList input.course-checkbox:checked').each(function () {
+                    const code = $(this).val();
+                    if (code) selectedCoursesToAssign.add(code);
+                });
+
+                if (selectedCoursesToAssign.size === 0) {
+                    Swal.fire('Error', 'Please select at least one course.', 'error');
+                    return;
+                }
+
+                const prog = $programSelect.val();
+                const year = $yearLevelSelect.val();
+                const semester = $semesterSelect.val();
+                const ay = $academicYearSelect.val();
+
+                if (!prog || !year || !semester || !ay) {
+                    Swal.fire('Error', 'Please complete all filters before assigning.', 'error');
+                    return;
+                }
+
+                const curCode = `${prog}(${ay})`;
+
+                const dataToSend = {
+                    curriculum: {
+                        Code: curCode,
+                        ProgramCode: prog,
+                        AcademicYear: ay
+                    },
+                    curriculumCourses: Array.from(selectedCoursesToAssign).map(code => ({
+                        CurriculumCode: curCode,
+                        CourseCode: code,
+                        YearLevel: year,
+                        Semester: semester
+                    }))
+                };
+
+                $.ajax({
+                    url: '/Admin/Curriculum/AssignCourses',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(dataToSend),
+                    success: function (response) {
+                        if (response.mess) {
+                            Swal.fire('Success!', 'Courses assigned successfully.', 'success')
+                                .then(() => $assignCourseModal.modal('hide'));
+                            loadCurriculumCourses();
+                        } else {
+                            Swal.fire('Error', response.error || 'Failed to assign courses.', 'error');
+                        }
+                    },
+                    error: function (xhr) {
+                        Swal.fire('Error', xhr.responseJSON?.error || 'An error occurred.', 'error');
+                    }
+                });
+            });
+
+            // Load curriculum courses via AJAX
+            function loadCurriculumCourses() {
+                const progCode = $programSelect.val();
+                const ayCode = $academicYearSelect.val();
+                const semester = $semesterSelect.val();
+                const yearLevel = $yearLevelSelect.val();
+                currentFilter.academicYear = ayCode;
+                currentFilter.program = progCode;
+                
+                if (!progCode || !ayCode || !semester || !yearLevel) return;
+
+                const curriculumCode = `${progCode}(${ayCode})`;
+
+                $.ajax({
+                    url: '/Admin/Curriculum/GetCurriculumCourses',
+                    method: 'GET',
+                    data: { curriculumCode, semester, yearLevel },
+                    success: function(response) {
+                        console.log('Courses loaded:', response);
+                        updateCoursesTable(response);
+                    },
+                    error: function(xhr) {
+                        console.error('Error loading courses:', xhr.responseText);
+                        Swal.fire('Error', 'Failed to load curriculum courses.', 'error');
+                    }
+                });
+            }
+
+            function updateCoursesTable(courses) {
+                const $tbody = $('#programTableBody');
+                $tbody.empty();
+    
+                if (!courses || courses.length === 0) {
+                    $tbody.append(`<tr><td colspan="8" class="no-courses">No courses found.</td></tr>`);
+                    return;
+                }
+    
+                const prerequisitesMap = {};
+                prerequisitesLookup.forEach(p => {
+                    if (!prerequisitesMap[p.CourseCode]) prerequisitesMap[p.CourseCode] = [];
+                    prerequisitesMap[p.CourseCode].push(p.PrerequisiteCourseCode);
+                });
+    
+                courses.forEach(course => {
+                    const prereqs = prerequisitesMap[course.Code] || [];
+                    const prereqDisplay = prereqs.length ? prereqs.join(', ') : 'None';
+    
+                    $tbody.append(`
+                <tr>
+                    <td>${course.Code}</td>
+                    <td>${course.Title}</td>
+                    <td>${prereqDisplay}</td>
+                    <td>${course.Units}</td>
+                    <td>${course.LecHours}</td>
+                    <td>${course.LabHours}</td>
+                    <td>${course.LecHours + course.LabHours}</td>
+                    <td class="action-buttons">
+                        <button class="btn btn-sm btn-danger delete-btn" data-id="${course.Code}">Unassign</button>
+                    </td>
+                </tr>
+            `);
+                });
+
+                $('.delete-btn').on('click', function () {
+                    const code = $(this).data('id');
+                    const curriculum = currentFilter.program + "(" + currentFilter.academicYear + ")";
+
+                    Swal.fire({
+                        title: 'Confirm Unassigning',
+                        text: `Are you sure you want to unassign course ${code}?`,
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: 'Confirm'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            $.ajax({
+                                url: '/Admin/Curriculum/UnassignCourse',
+                                method: 'POST',
+                                contentType: 'application/json',
+                                data: JSON.stringify({ curriculum: curriculum, code: code }), // Stringify the data
+                                success: function (response) {
+                                    if (response.success) {
+                                        Swal.fire(
+                                            'Unassigned Successfully!',
+                                            'The course has been unassigned from the curriculum.',
+                                            'success'
+                                        ).then(() => {
+                                            loadCurriculumCourses();
+                                        });
+                                    } else {
+                                        Swal.fire(
+                                            'Error!',
+                                            response.error || 'Failed to unassign course.',
+                                            'error'
+                                        );
+                                    }
+                                },
+                                error: function (xhr) {
+                                    Swal.fire(
+                                        'Error!',
+                                        xhr.responseJSON?.error || 'An error occurred while unassigning the course.',
+                                        'error'
+                                    );
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+
+            // Initial call
+            checkSelections();
+        });
+</script>
+    

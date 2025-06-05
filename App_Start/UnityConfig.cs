@@ -1,9 +1,11 @@
+using System.Configuration;
 using System.Web.Mvc;
+using Enrollment_System.Controllers.Service;
 using Unity;
+using Unity.Injection;
 using Unity.Mvc5;
-using EnrollmentSystem.Controllers.Service;
 
-namespace EnrollmentSystem
+namespace Enrollment_System
 {
     public static class UnityConfig
     {
@@ -12,7 +14,7 @@ namespace EnrollmentSystem
             var container = new UnityContainer();
 
             // Register services here
-            container.RegisterType<IFetchService, FetchService>();
+            container.RegisterType<BaseControllerServices>(new InjectionConstructor(ConfigurationManager.ConnectionStrings["DbConnection"].ConnectionString));
 
             DependencyResolver.SetResolver(new UnityDependencyResolver(container));
         }

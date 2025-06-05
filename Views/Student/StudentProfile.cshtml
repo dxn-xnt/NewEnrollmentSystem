@@ -1,0 +1,72 @@
+@{
+    ViewBag.Title = "Student Profile";
+    Layout = "~/Views/Shared/StudentHeader.cshtml";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Profile - Enrollment System</title>
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .content-section {
+            padding: 30px;
+            flex-grow: 1;
+        }
+        .profile-info p {
+            margin-bottom: 8px;
+        }
+        .profile-info strong {
+            display: inline-block;
+            width: 140px;
+        }
+        .card-header-profile {
+            background-color: #007bff;
+            color: white;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+<div class="container content-section">
+    <h1 class="mb-4">Your Student Profile</h1>
+    <p class="lead">Here are your registered details.</p>
+
+    <div class="card mt-4">
+        <div class="card-header card-header-profile">
+            Student ID: CTU-2023-0001
+        </div>
+        <div class="card-body profile-info">
+            <p><strong>Name:</strong> Juan Dela Cruz | Santos</p>
+            <p><strong>Year:</strong> 1st Year</p>
+            <p><strong>Semester:</strong> 2nd Semester</p>
+            <p><strong>Student Status:</strong> Regular</p>
+            <p><strong>Current Course:</strong> Bachelor of Science in Information Technology</p>
+            <hr>
+            <p><strong>Date of Birth:</strong> January 15, 2005 | <strong>Age:</strong> 20</p>
+            <p><strong>Contact Number:</strong> +63 9XX XXX XXXX</p>
+            <p><strong>Email Address:</strong> juan.delacruz@ctu.edu.ph</p>
+            <hr>
+            <p><strong>Address:</strong> 123 Main Street, Cebu City, Philippines</p>
+            <hr>
+            <p><strong>Date Registered:</strong> August 20, 2023</p>
+        </div>
+    </div>
+</div>
+
+<script src="~/Content/bootstrap.bundle.min.js"></script>
+@* Removed the header loading script since we're using server-side partial view *@
+</body>
+</html>

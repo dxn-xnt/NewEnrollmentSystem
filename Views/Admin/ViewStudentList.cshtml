@@ -1,0 +1,152 @@
+@model IEnumerable<Enrollment_System.Models.Student>
+@{
+    ViewBag.Title = "Student List";
+    Layout = "~/Views/Shared/AdminHeader.cshtml";
+}
+@section Styles {
+    <style>
+       
+        .content-section {
+            padding: 30px;
+            flex-grow: 1;
+        }
+        
+        .table-responsive {
+            margin-bottom: 30px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.25) !important;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #FE7743;
+            font-weight: 500;
+            color: white;
+        }
+
+        .total-row {
+            font-weight: bold;
+        }
+
+        .edit-buttons {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .edit-buttons button {
+            margin: 5px 0;
+            background-color: #273F4F;
+            color: #EFEEEA;
+            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+            border-radius: 3px;
+            border: 0 solid #000000;
+            padding: 3px;
+            font-family: 'Montserrat', serif;
+            font-size: 1.1rem;
+            min-width: 150px;
+            min-height: 30px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-buttons a {
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-size: 0.9rem;
+        }
+
+        .btn-warning {
+            background-color: #FE7743;
+            color: #212529;
+        }
+
+        .btn {
+            border-radius: 0 !important;
+            background-color: #FE7743 !important;
+            font-weight: 500 !important;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.25) !important;
+            color: white !important;
+        }
+
+        .btn-danger {
+            background-color: #FE7743 !important;
+            color: white;
+            border-radius: 0;
+        }
+
+        .btn-success {
+            background-color: #FE7743 !important;
+            color: white;
+            border-radius: 0;
+        }
+
+        .no-courses,
+        .no-students {
+            text-align: center;
+            padding: 20px;
+            color: #6C757D;
+        }
+    </style>
+}
+
+<div class="container content-section">
+    <h1 class="page-title">Student List</h1>
+    <div class="table-responsive">
+        <table>
+            <thead>
+            <tr>
+                <th>Student ID</th>
+                <th>Name</th>
+                <th>Program</th>
+                <th>Year Level</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            @if (Model == null || !Model.Any())
+            {
+                <tr>
+                    <td colspan="6" class="no-students">
+                        <i class="bi bi-exclamation-circle"></i> No students found.
+                    </td>
+                </tr>
+            }
+            else
+            {
+                foreach (var student in Model)
+                {
+                    <tr>
+                        <td>@student.Id</td>
+                        <td>@student.LastName, @student.FirstName @student.MiddleName</td>
+                        <td>@student.ProgramCode</td>
+                        <td>@(student.YearLevel > 0 ? student.YearLevel.ToString() : " ")</td>
+                        <td>
+                            <span class="status-badge @(student.Status == "Regular" ? "status-regular" : "status-irregular")">
+                                @student.Status
+                            </span>
+                        </td>
+                        <td class="action-buttons">
+                            <a href="@Url.Action("Details", "Student", new { id = student.Id })" class="btn btn-sm btn-warning">View</a>
+                        </td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

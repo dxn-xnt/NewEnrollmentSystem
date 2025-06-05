@@ -1,10 +1,9 @@
-﻿using System.Collections.Generic;
-
-namespace EnrollmentSystem.Models
+namespace Enrollment_System.Models
 {
     public class Semester
     {
-        public int SemId { get; set; }
-        public string SemName { get; set; }
+        public int Id { get; set; }
+        public string Name { get; set; }
+
     }
 }

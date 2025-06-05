@@ -1,0 +1,169 @@
+@{
+    ViewBag.Title = "Dashboard";
+    Layout = "~/Views/Shared/StudentHeader.cshtml";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>xx
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Enrollment System</title>
+    <link rel="stylesheet" href="~/Content/bootstrap.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .content-section {
+            padding: 30px;
+            flex-grow: 1;
+        }
+        .jumbotron {
+            background-color: #e9ecef;
+            padding: 2rem 1rem;
+            margin-bottom: 2rem;
+            border-radius: .3rem;
+            text-align: center;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+    </style>
+</head>
+<body>
+<div class="container content-section">
+    <div class="jumbotron">
+        <h1 class="display-4">Welcome to the Enrollment System!</h1>
+        <p class="lead">Manage your academic journey with ease. Use the navigation above to explore different sections.</p>
+        <hr class="my-4">
+        <p>From here, you can access your profile, enroll in subjects, check your class schedule, and view your grades.</p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Your Profile</h5>
+                    <p class="card-text">View and update your personal information and academic records.</p>
+                    <a href="@Url.Action("ProfileView", "Student")" class="btn btn-primary">Go to Profile</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Enrollment</h5>
+                    <p class="card-text">Register for new subjects and manage your current course load.</p>
+                    <a href="@Url.Action("Enrollment", "Student")" class="btn btn-primary">Start Enrollment</a>
+                </div>
+                
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Class Schedule</h5>
+                    <p class="card-text">Check your daily and weekly class timetable.</p>
+                    <a href="@Url.Action("Schedule", "Student")" class="btn btn-primary">View Schedule</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Scripts/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const headerPath = '../Shared/StudentHeader.cshtml';
+
+        fetch(headerPath)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text();
+            })
+            .then(html => {
+                document.getElementById('main-header-placeholder').innerHTML = html;
+
+                // --- Logic to set active link ---
+                const currentPath = window.location.pathname;
+                const currentPage = currentPath.substring(currentPath.lastIndexOf('/') + 1);
+
+                const navLinks = document.querySelectorAll('.navbar-nav .nav-link');
+                navLinks.forEach(link => {
+                    const linkHref = link.getAttribute('href');
+                    const linkPage = linkHref.substring(linkHref.lastIndexOf('/') + 1);
+
+                    if (linkPage.toLowerCase() === currentPage.toLowerCase()) {
+                        link.classList.add('active');
+                        link.setAttribute('aria-current', 'page');
+                    } else {
+                        link.classList.remove('active');
+                        link.removeAttribute('aria-current');
+                    }
+                });
+                // --- End of logic to set active link ---
+
+            })
+            .catch(error => {
+                console.error('Error loading header:', error);
+                document.getElementById('main-header-placeholder').innerHTML = '<p style="color: red; text-align: center;">Failed to load navigation.</p>';
+            });
+    });
+</script>
+</body>
+</html>
+    @* <script src="../../Content/bootstrap.bundle.min.js"></script> *@
+    @* <script> *@
+    @*     document.addEventListener('DOMContentLoaded', function() { *@
+    @*         const headerPath = '../Shared/MainHeader.html'; *@
+    @* *@
+    @*         fetch(headerPath) *@
+    @*             .then(response => { *@
+    @*                 if (!response.ok) { *@
+    @*                     throw new Error(`HTTP error! status: ${response.status}`); *@
+    @*                 } *@
+    @*                 return response.text(); *@
+    @*             }) *@
+    @*             .then(html => { *@
+    @*                 document.getElementById('main-header-placeholder').innerHTML = html; *@
+    @* *@
+    @*                 // --- Logic to set active link --- *@
+    @*                 const currentPath = window.location.pathname; *@
+    @*                 const currentPage = currentPath.substring(currentPath.lastIndexOf('/') + 1); *@
+    @* *@
+    @*                 const navLinks = document.querySelectorAll('.navbar-nav .nav-link'); *@
+    @*                 navLinks.forEach(link => { *@
+    @*                     const linkHref = link.getAttribute('href'); *@
+    @*                     const linkPage = linkHref.substring(linkHref.lastIndexOf('/') + 1); *@
+    @* *@
+    @*                     if (linkPage.toLowerCase() === currentPage.toLowerCase()) { *@
+    @*                         link.classList.add('active'); *@
+    @*                         link.setAttribute('aria-current', 'page'); *@
+    @*                     } else { *@
+    @*                         link.classList.remove('active'); *@
+    @*                         link.removeAttribute('aria-current'); *@
+    @*                     } *@
+    @*                 }); *@
+    @*                 // --- End of logic to set active link --- *@
+    @* *@
+    @*             }) *@
+    @*             .catch(error => { *@
+    @*                 console.error('Error loading header:', error); *@
+    @*                 document.getElementById('main-header-placeholder').innerHTML = '<p style="color: red; text-align: center;">Failed to load navigation.</p>'; *@
+    @*             }); *@
+    @*     }); *@
+    @* </script> *@

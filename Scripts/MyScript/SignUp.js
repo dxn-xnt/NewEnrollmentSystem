@@ -1,29 +1,31 @@
 $(document).ready(function () {
-    $('#btn').click(function () {
+    $('#submitButton').click(function (e) {
         $('.input-error').removeClass('input-error');
-        
-        var studCode = parseInt($('#studCode').val(), 10);
-        
-        if (isNaN(studCode)) {
-            alert("Please enter a valid numeric student code.");
+
+        // Client-side validation
+        if ($('#Password').val() !== $('#ConfirmPassword').val()) {
+            Swal.fire('Error', 'Passwords do not match', 'error');
+            $('#ConfirmPassword').addClass('input-error').focus();
             return;
         }
-        var student = {
-            Stud_Code: studCode,
-            Stud_Lname: $('#lastName').val(),
-            Stud_Fname: $('#firstName').val(),
-            Stud_Mname: $('#middleName').val(),
-            Stud_Dob: $('#birthDate').val(),
-            Stud_Contact: $('#contactNo').val(),
-            Stud_Email: $('#emailAddress').val(),
-            Stud_Address: $('#address').val(),
-            Stud_Password: $('#newPassword').val(),
-            
+
+        const student = {
+            Id: parseInt($('#StudentID').val()),
+            LastName: $('#LastName').val(),
+            FirstName: $('#FirstName').val(),
+            MiddleName: $('#MiddleName').val(),
+            Birthdate: $('#Birthdate').val(), 
+            Contact: $('#Contact').val(),
+            Email: $('#Email').val(),
+            HomeAddress: $('#HomeAddress').val(),
+            Password: $('#Password').val()
         };
-        console.log(student);
+
+        console.log('Submitting:', student); // Debugging
+
         $.ajax({
             type: "POST",
-            url: '/Auth/Entry',
+            url: '/Account/SignUp',
             contentType: 'application/json; charset=utf-8',
             data: JSON.stringify(student),
             success: function (response) {
@@ -56,13 +58,15 @@ $(document).ready(function () {
                     });
                 }
             },
-            error: function () {
-                Swal.fire({
-                    title: 'Error',
-                    text: "Something went wrong during submission.",
-                    icon: 'error',
-                    confirmButtonText: 'Close'
-                });
+            error: function (xhr) {
+                console.error('Error:', xhr.responseText);
+                let errorMsg = "Something went wrong during submission.";
+                try {
+                    const serverError = JSON.parse(xhr.responseText);
+                    errorMsg = serverError.error || serverError.message || errorMsg;
+                } catch (e) {}
+
+                Swal.fire('Error', errorMsg, 'error');
             }
         });
     });

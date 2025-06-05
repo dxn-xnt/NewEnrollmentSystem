@@ -1,11 +1,8 @@
-﻿using System.Collections.Generic;
-
-namespace EnrollmentSystem.Models;
-
-public class Program
+namespace Enrollment_System.Models
 {
-    public string ProgCode { get; set; }
-    public string ProgTitle { get; set; }
-
-    // Navigation Properties
+    public class Program
+    {
+        public string Code { get; set; }
+        public string Title { get; set; }
+    }
 }

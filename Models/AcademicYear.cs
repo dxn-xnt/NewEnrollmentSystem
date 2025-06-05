@@ -1,12 +1,9 @@
-﻿using System.Collections.Generic;
-
-namespace EnrollmentSystem.Models;
-
-public class AcademicYear
+namespace Enrollment_System.Models
 {
-    public string AyCode { get; set; }
-    public int AyStartYear { get; set; }
-    public int AyEndYear { get; set; }
-
-    // Navigation Properties
+    public class AcademicYear
+    {
+        public string Code { get; set; }
+        public int StartYear { get; set; }
+        public int EndYear { get; set; }
+    }
 }

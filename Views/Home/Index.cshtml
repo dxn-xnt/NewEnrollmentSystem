@@ -1,5 +1,5 @@
 @{
-    Layout = null; 
+    Layout = null;
 }
 
 <!DOCTYPE html>
@@ -7,259 +7,171 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cebu Technological University | Student Enrollment System</title>
-    <link rel="stylesheet" href="@Url.Content("~/Scripts/bootstrap.min.css")" />
+    <title>Enrollment System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
-
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: ;    /* Orange */
+            --secondary: ;  /* Dark blue */
+            --light: #EFEEEA;      /* Light gray */
+            --text-dark: #273F4F;
+            --text-light: ;
+        }
+        html{
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             margin: 0;
             min-height: 100vh;
             display: flex;
-            background-color: #f8f9fa;
-            overflow: hidden;
-        }
-
-        .content-section {
-            flex: 1;
-            display: flex;
             justify-content: center;
             align-items: center;
-            padding: 60px;
-            background-color: #ffffff;
-            box-shadow: 20px 0 50px -15px rgba(0, 0, 0, 0.1);
-            z-index: 1;
-            animation: slideInLeft 1s ease-out forwards;
-            opacity: 0;
-            transform: translateX(-50px);
-            text-align: left;
-        }
-
-        .content-wrapper {
-            max-width: 550px;
+            background-color: #EFEEEA;
             padding: 20px;
         }
 
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            border-radius: 0;
+            border: 1px solid #000000;
+        }
+
+        .content-section {
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
         .content-section h1 {
-            font-size: 3rem;
-            color: #0056b3; /* Darker blue */
-            margin-bottom: 10px;
+            font-size: 2.5rem;
+            color: #273F4F;
+            margin-bottom: 20px;
             font-weight: 700;
             line-height: 1.2;
-            letter-spacing: -1px;
-        }
-
-        .university-logo {
-            width: 80px;
-            margin-bottom: 20px;
-        }
-
-        .system-subtitle {
-            font-size: 1.5rem;
-            color: #343a40;
-            margin-bottom: 25px;
-            font-weight: 500;
-            line-height: 1.4;
-            position: relative;
-            padding-bottom: 10px;
-        }
-
-        .system-subtitle::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 60px;
-            height: 3px;
-            background: #007bff;
-            border-radius: 3px;
         }
 
         .content-section p {
-            font-size: 1.1rem;
+            font-size: 1.05rem;
             line-height: 1.7;
-            margin-bottom: 35px;
-            color: #6c757d;
+            margin-bottom: 30px;
+            color: #5F6C76;
         }
 
-        .btn-group-main {
+        .btn-group {
             display: flex;
-            gap: 20px;
-            flex-wrap: wrap;
-            justify-content: flex-start;
+            gap: 15px;
         }
 
-        .btn-custom {
+        .btn {
             font-size: 1rem;
-            padding: 14px 35px;
-            border-radius: 8px;
+            min-width: 150px;
+            padding: 12px 30px;
+            border-radius: 0px;
             font-weight: 600;
             transition: all 0.3s ease;
-            min-width: 180px;
             color: white;
             border: none;
-            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
             cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
         }
 
-        .btn-custom:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        .btn-primary {
+            background-color: #FE7743;
+        }
+        .btn-primary:hover {
+            background-color: #e56a3c;
+            transform: translateY(-2px);
         }
 
-        .btn-login-custom {
-            background-color: #007bff;
+        .btn-secondary {
+            background-color: #273F4F;
         }
-        .btn-login-custom:hover {
-            background-color: #0056b3;
+        .btn-secondary:hover {
+            background-color: #1e3442;
+            transform: translateY(-2px);
         }
 
-        .btn-signup-custom {
-            background-color: #6f42c5;
+        .redirect-link {
+            width: 100%;
+            height: 100%;
+            min-width: 200px;
+            display: inline-block;
+            font-size: 0.9rem;
+            margin-top: 20px;
+            cursor: pointer;
+            color: black;
+            text-decoration: none;
         }
-        .btn-signup-custom:hover {
-            background-color: #5b36a8;
+        .redirect-link:hover {
+           text-decoration: underline;
         }
 
         .image-section {
-            flex: 1;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            min-height: 100vh;
-            position: relative;
-            animation: slideInRight 1s ease-out forwards;
-            opacity: 0;
-            transform: translateX(50px);
         }
 
-        .image-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, rgba(0, 86, 179, 0.7), rgba(111, 66, 197, 0.7));
-        }
-
-        @@keyframes slideInLeft {
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        @@keyframes slideInRight {
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        @@keyframes fadeInScale {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @@media (max-width: 992px) {
-            body {
-                flex-direction: column;
-                min-height: auto;
+        @@media (max-width: 768px) {
+            .container {
+                grid-template-columns: 1fr;
             }
             .content-section {
-                box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.1);
-                padding: 50px 30px;
-                animation: fadeInScale 0.9s ease-out forwards;
-                transform: translateY(20px);
+                padding: 40px 30px;
                 text-align: center;
             }
-            .system-subtitle::after {
-                left: 50%;
-                transform: translateX(-50%);
-            }
             .image-section {
-                min-height: 350px;
-                width: 100%;
-                animation: fadeInScale 0.9s ease-out forwards;
-                transform: translateY(20px);
+                min-height: 250px;
+                order: -1;
             }
-            .content-section h1 {
-                font-size: 2.5rem;
-            }
-            .system-subtitle {
-                font-size: 1.3rem;
-            }
-            .btn-group-main {
+            .btn-group {
                 justify-content: center;
             }
         }
 
-        @@media (max-width: 576px) {
+        @@media (max-width: 480px) {
             .content-section {
-                padding: 40px 20px;
+                padding: 30px 20px;
             }
             .content-section h1 {
                 font-size: 2rem;
             }
-            .system-subtitle {
-                font-size: 1.2rem;
-            }
-            .content-section p {
-                font-size: 1rem;
-            }
-            .btn-group-main {
+            .btn-group {
                 flex-direction: column;
-                gap: 15px;
+                gap: 10px;
             }
-            .btn-custom {
+            .btn {
                 width: 100%;
-                padding: 12px 20px;
             }
-            .image-section {
-                min-height: 250px;
-            }
-        }
-
-        body:not(.js-loaded) .content-section,
-        body:not(.js-loaded) .image-section {
-            opacity: 1;
-            transform: none;
         }
     </style>
 </head>
 <body>
-<div class="content-section">
-    <div class="content-wrapper">
-        <img src="@Url.Content("~/images/ctu-logo.png")" alt="CTU Logo" class="university-logo">
-        <h1>Cebu Technological University</h1>
-        <p class="system-subtitle">Student Enrollment System</p>
-        <p>Welcome to the CTU Enrollment System, designed to empower aspiring minds. Explore our leading-edge degree programs, seamlessly manage your application, and step into a future of innovation, research, and community-responsive education.</p>
-        <div class="btn-group-main">
-            <a href="@Url.Action("Login", "Login")" aria-label="Login to CTU Student Portal">
-                <button class="btn btn-custom btn-login-custom">
-                    <i class="fas fa-sign-in-alt"></i> Login to Portal
-                </button>
-            </a>
-            <a asp-controller="Student" asp-action="SignUp" aria-label="Apply now for CTU Enrollment">
-                <button class="btn btn-custom btn-signup-custom">
-                    <i class="fas fa-user-plus"></i> Apply Now
-                </button>
-            </a>
+    <div class="container">
+        <div class="content-section">
+            <h1>Enrollment System</h1>
+            <p>Streamline your academic journey with our comprehensive enrollment platform. Manage your courses, track progress, and access educational resources all in one place.</p>
+            
+            <div class="btn-group">
+                <a href="@Url.Action("StudentLogIn", "Account")" class="btn btn-primary">Student Login</a>
+                <a href="@Url.Action("SignUp", "Account")" class="btn btn-secondary">Create Account</a>
+                <a href="@Url.Action("FacultyLogIn", "Account")" class="redirect-link">Go to Faculty Login</a>
+            </div>
         </div>
     </div>
-</div>
-
-<div class="image-section" style="background-image: url('@Url.Content("~/images/ctu-campus.jpg")');">
-</div>
-
-<script src="@Url.Content("~/Content/bootstrap.bundle.min.js")"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        document.body.classList.add('js-loaded');
-    });
-</script>
 </body>
 </html>

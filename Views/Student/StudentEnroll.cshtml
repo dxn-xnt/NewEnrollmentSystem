@@ -141,6 +141,31 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
         hr {
             border-top: 1px solid #ced4da;
         }
+        .no-enrollment-message {
+            text-align: center;
+            padding: 50px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+        }
+
+        .no-enrollment-message i {
+            font-size: 3rem;
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+
+        .no-enrollment-message h2 {
+            color: #273F4F;
+            margin-bottom: 15px;
+        }
+
+        .no-enrollment-message p {
+            color: #6c757d;
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
     </style>
 </head>
 <body>
@@ -149,15 +174,46 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>Student Enrollment</h1>
     </div>
-    
-    <div class="card">
-        <div class="card-body">
-            <h5 class="card-title mb-4">Student Information</h5>
-            
-            @using (Html.BeginForm("Enrollment", "Student", FormMethod.Post, new { id = "enrollmentForm" }))
-            {
-                <div class="row mb-3">
-                    <div class="col-md-3">
+
+    <div id="enrollmentFormContainer">
+        <!-- This will be populated by JavaScript based on enrollment period status -->
+        <div class="text-center my-5 py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Checking enrollment status...</p>
+        </div>
+    </div>
+
+    <!-- Template for when enrollment is open -->
+    <script id="enrollmentOpenTemplate" type="text/template">
+        <div class="card">
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="d-flex align-items-center p-3">
+                            <h5 class="mb-0 me-3 fw-semibold">Enrollment Period:</h5>
+                            <h4 class="mb-0 fw-bold" id="academicYearLabel">
+                                {{academicYear}} - {{semesterName}}
+                            </h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="d-flex align-items-center p-3 h-100">
+                            <h5 class="mb-0 fw-semibold">Student ID:</h5>
+                            @Html.TextBoxFor(model => model.Id, new {
+                                @class = "fw-bold text-center",
+                                @readonly = "readonly"
+                            })
+                        </div>
+                    </div>
+                </div>
+
+                @using (Html.BeginForm("Enrollment", "Student", FormMethod.Post, new { id = "enrollmentForm" }))
+                {
+                    <!-- Rest of your form content remains the same -->
+                    <div class="row mb-3">
+                    <div class="col-md-4">
                         <label for="studentStatus" class="form-label">Student Status</label>
                         <select class="form-select" id="studentStatus" name="studentStatus">
                             <option selected disabled>Choose...</option>
@@ -165,39 +221,29 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
                             <option value="Irregular">Irregular</option>
                         </select>
                     </div>
-                    <div class="col-md-3">
-                        <label for="enrollmentStatus" class="form-label">Enrollment Status</label>
-                        <select class="form-select" id="enrollmentStatus" name="enrollmentStatus">
-                            <option selected disabled>Choose...</option>
-                            <option value="New">New</option>
-                            <option value="Old">Old</option>
-                            <option value="Transferee">Transferee</option>
-                            <option value="Cross-Enrollee">Cross-Enrollee</option>
-                        </select>
-                    </div>
-                    
-                        <!-- Semester Selection -->
-                        <div class="col-md-3">
-                            <label for="enrollmentSemester" class="form-label">Semester</label>
-                            <select class="form-select" id="enrollmentSemester" name="enrollmentSemester">
-                                <option value="" selected disabled>Select Semester</option>
-                                @{
-                                    var semesters = ViewBag.Semesters as List<Enrollment_System.Models.Semester>;
-                                    if (semesters != null && semesters.Count > 0)
+
+                    <!-- Semester Selection -->
+                    <div class="col-md-4">
+                        <label for="enrollmentSemester" class="form-label">Semester</label>
+                        <select class="form-select" id="enrollmentSemester" name="enrollmentSemester">
+                            <option value="" selected disabled>Select Semester</option>
+                            @{
+                                var semesters = ViewBag.Semesters as List<Enrollment_System.Models.Semester>;
+                                if (semesters != null && semesters.Count > 0)
+                                {
+                                    foreach (var sem in semesters)
                                     {
-                                        foreach (var sem in semesters)
-                                        {
-                                            <option value="@sem.Id">@sem.Name</option>
-                                        }
-                                    }
-                                    else
-                                    {
-                                        <option disabled>No semesters available</option>
+                                        <option value="@sem.Id">@sem.Name</option>
                                     }
                                 }
-                            </select>
-                        </div>
-                    <div class="col-md-3">
+                                else
+                                {
+                                    <option disabled>No semesters available</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4">
                         <label for="yearLevel" class="form-label">Year Level</label>
                         <select class="form-select" id="yearLevel" name="yearLevel">
                             <option selected disabled>Select Year Level</option>
@@ -213,7 +259,9 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
                             }
                         </select>
                     </div>
-                    <div class="col-md-3">
+                </div>
+                    <div class="row mb-3">
+                    <div class="col-md-4">
                         <label for="program" class="form-label">Program</label>
                         <select class="form-select" id="program" name="program">
                             <option selected disabled>Select Program</option>
@@ -233,7 +281,7 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
                             }
                         </select>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         <label for="blockSection" class="form-label">Block Section</label>
                         <select class="form-select" id="blockSection" name="blockSection">
                             <option value="">All Sections</option>
@@ -243,12 +291,12 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
                                 {
                                     foreach (var blockSection in sections)
                                     {
-                                        <option value="@blockSection.Code" 
-                                                data-program="@blockSection.ProgramCode"
-                                                data-year="@blockSection.YearLevel"
-                                                data-semester="@blockSection.Semester">
-                                            @blockSection.Name 
-                                        </option>
+                                        <option value="@blockSection.Code"
+                                    data-program="@blockSection.ProgramCode"
+                                    data-year="@blockSection.YearLevel"
+                                    data-semester="@blockSection.Semester">
+                                @blockSection.Name
+                            </option>
                                     }
                                 }
                                 else
@@ -260,13 +308,13 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
                     </div>
                 </div>
 
-                <hr class="my-4">
+                            <hr class="my-4">
 
-                <h5 class="card-title">Subject Selection</h5>
-                <p class="text-danger">Note: ONLY Irregular Students will fill out this section.</p>
-                <button type="button" class="btn btn-info mb-3" id="selectSubjectsBtn">SELECT SUBJECTS</button>
+                            <h5 class="card-title">Subject Selection</h5>
+                            <p class="text-danger">Note: ONLY Irregular Students will fill out this section.</p>
+                            <button type="button" class="btn btn-info mb-3" id="selectSubjectsBtn">SELECT SUBJECTS</button>
 
-                <div id="subjectSelectionArea">
+                            <div id="subjectSelectionArea">
                     <h5 class="card-title mb-3">Available Subjects</h5>
                     <div class="table-responsive">
                         <table class="table">
@@ -309,42 +357,54 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
                     <p class="card-text mt-3"><strong>Total Units:</strong> <span id="totalUnitsDisplay">0</span></p>
                 </div>
 
-                <div class="d-flex justify-content-end mt-4">
+                            <div class="d-flex justify-content-end mt-4">
                     <button type="submit" class="btn btn-primary">CONFIRM ENROLLMENT</button>
                 </div>
-            }
+                }
+            </div>
         </div>
-    </div>
+    </script>
 
-    <!-- Schedule Selection Modal -->
-    <div class="modal fade" id="scheduleSelectionModal" tabindex="-1" role="dialog" aria-labelledby="scheduleSelectionModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="scheduleSelectionModalLabel">Select Schedule</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                
-                <div class="modal-body">
-                    <!-- Schedule options will be inserted here -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary">Confirm Selection</button>
-                </div>
+    <!-- Template for when enrollment is closed -->
+    <script id="enrollmentClosedTemplate" type="text/template">
+        <div class="no-enrollment-message">
+            <i class="fas fa-calendar-times"></i>
+            <h2>No Open Enrollment</h2>
+            <p>There is currently no active enrollment period. Please check back later or contact the registrar's office for more information.</p>
+            <p>Last enrollment period was <strong>{{lastAcademicYear}} - {{lastSemesterName}}</strong> which ended on <strong>{{endDate}}</strong>.</p>
+            <a href="/Student/Dashboard" class="btn btn-primary mt-3">Return to Dashboard</a>
+        </div>
+    </script>
+</div>
+
+<!-- Schedule Selection Modal -->
+<div class="modal fade" id="scheduleSelectionModal" tabindex="-1" role="dialog" aria-labelledby="scheduleSelectionModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="scheduleSelectionModalLabel">Select Schedule</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <div class="modal-body">
+                <!-- Schedule options will be inserted here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary">Confirm Selection</button>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
     $(document).ready(function() {
         let selectedCourses = [];
         let studentYearLevel = 1;
@@ -354,32 +414,154 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
         let curriculumCode = '';
         let availableCourses = [];
 
-        // Initialize form elements
-        $('#yearLevel').change(function() {
-            studentYearLevel = $(this).val();
-            loadAvailableCourses();
-        });
+        // First, check if there's an active enrollment period
+        checkEnrollmentPeriod();
+        
+        function checkEnrollmentPeriod() {
+            $.ajax({
+                url: '/Admin/Enrollment/GetCurrentEnrollmentPeriod',
+                type: 'GET',
+                success: function(response) {
+                    if (response.success && response.period) {
+                        if (response.period.IsActive) {
+                            // Enrollment is open - show the form
+                            renderEnrollmentForm(response.period);
+                        } else {
+                            // Enrollment is closed - show message
+                            renderClosedEnrollmentMessage(response.period);
+                        }
+                    } else {
+                        // No active enrollment period
+                        renderClosedEnrollmentMessage(response.period || null);
+                    }
+                },
+                error: function() {
+                    // If there's an error, show a generic message
+                    $('#enrollmentFormContainer').html(`
+                        <div class="alert alert-danger">
+                            Error checking enrollment status. Please try again later or contact support.
+                        </div>
+                    `);
+                }
+            });
+        }
+        
+        function renderEnrollmentForm(period) {
+            const template = $('#enrollmentOpenTemplate').html();
+            const rendered = template
+                .replace('{{academicYear}}', period.AcademicYear)
+                .replace('{{semesterName}}', period.SemesterName);
+            
+            $('#enrollmentFormContainer').html(rendered);
+            
+            // Set the semester dropdown to the active period
+            $('#enrollmentSemester').val(period.SemesterId);
+            
+            // Initialize the rest of the form functionality
+            initializeForm();
+        }
+        
+        function renderClosedEnrollmentMessage(period) {
+            let template = $('#enrollmentClosedTemplate').html();
+            
+            if (period) {
+                template = template
+                    .replace('{{lastAcademicYear}}', period.AcademicYear)
+                    .replace('{{lastSemesterName}}', period.SemesterName)
+                    .replace('{{endDate}}', new Date(period.EndDate).toLocaleDateString());
+            } else {
+                // If no period data is available
+                template = template
+                    .replace('{{lastAcademicYear}}', 'N/A')
+                    .replace('{{lastSemesterName}}', 'N/A')
+                    .replace('{{endDate}}', 'N/A');
+            }
+            
+            $('#enrollmentFormContainer').html(template);
+        }
+        
+        function initializeForm() {
+            // Initialize form elements
+            $('#yearLevel').change(function() {
+                studentYearLevel = $(this).val();
+                loadAvailableCourses();
+            });
 
-        $('#program').change(function() {
-            studentProgram = $(this).val();
-            loadAvailableCourses();
-        });
+            $('#program').change(function() {
+                studentProgram = $(this).val();
+                loadAvailableCourses();
+            });
 
-        $('#schoolYear').change(function() {
-            academicYear = $(this).val();
-            loadAvailableCourses();
-        });
+            $('#schoolYear').change(function() {
+                academicYear = $(this).val();
+                loadAvailableCourses();
+            });
 
-        $('#enrollmentSemester').change(function() {
-            semesterId = $(this).val();
-            loadAvailableCourses();
-        });
+            $('#enrollmentSemester').change(function() {
+                semesterId = $(this).val();
+                loadAvailableCourses();
+            });
 
-        $('#selectSubjectsBtn').click(function() {
-            $('#subjectSelectionArea').show();
-            loadAvailableCourses();
-        });
+            $('#selectSubjectsBtn').click(function() {
+                $('#subjectSelectionArea').show();
+                loadAvailableCourses();
+            });
 
+            $(document).ready(function() {
+                loadEnrollmentPeriod();
+
+                function loadEnrollmentPeriod() {
+                    $.ajax({
+                        url: '/Admin/Enrollment/GetCurrentEnrollmentPeriod',
+                        type: 'GET',
+                        success: function(response) {
+                            if (response.success) {
+                                if (response.period) {
+                                    updateAcademicYearDisplay(response.period);
+                                    initializeFormBasedOnPeriod(response.period);
+                                } else {
+                                    $('#academicYearLabel').html('<span class="text-danger">No enrollment period configured</span>');
+                                }
+                            } else {
+                                $('#academicYearLabel').html('<span class="text-danger">Error loading period</span>');
+                            }
+                        },
+                        error: function() {
+                            $('#academicYearLabel').html('<span class="text-danger">Connection error</span>');
+                        }
+                    });
+                }
+
+                function updateAcademicYearDisplay(period) {
+                    const statusBadge = period.IsActive
+                        ? '<span class="badge bg-success ms-2">Active</span>'
+                        : '<span class="badge bg-secondary ms-2">Completed</span>';
+
+                    $('#academicYearLabel').html(`
+                    ${period.AcademicYear} - ${period.SemesterName}
+                `);
+                }
+
+                function initializeFormBasedOnPeriod(period) {
+                    // Disable form if period is not active
+                    if (!period.IsActive) {
+                        $('#enrollmentForm :input').prop('disabled', true);
+                        $('#enrollmentForm').prepend(`
+                <div class="alert alert-warning mb-4">
+                    Enrollment is currently closed. The last period was ${period.AcademicYear} - ${period.SemesterName}.
+                </div>
+            `);
+                    }
+
+                    // Set default semester selection if available
+                    if (period.SemesterId) {
+                        $('#enrollmentSemester').val(period.SemesterId);
+                    }
+                }
+            });
+
+        }
+        
         function loadAvailableCourses() {
             if (!studentYearLevel || !studentProgram || !academicYear || !semesterId) {
                 console.log('Missing required parameters');
@@ -495,7 +677,7 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
                             } catch (e) {
                                 console.error('Error formatting time slot:', slot, e);
                                 return 'Invalid time';
-                            }   
+                            }
                         }).join('<br>');
 
                         days = scheduleInfo.TimeSlots.map(slot => slot.Day || '?').join('/');
@@ -552,12 +734,12 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
             const $modal = $('#scheduleSelectionModal');
             const $modalBody = $modal.find('.modal-body');
             $modalBody.empty();
-            
+
             const course = availableCourses.find(c => c.Code === courseCode);
-            
+
             $modalBody.append(`<h5>Course: ${course.Code} - ${course.Title} </h5>`);
             $modalBody.append('<h6>Select Schedule Option:</h6>');
-            
+
             const $table = $('<table class="table table-bordered"><thead><tr><th>Schedule ID</th><th>Time</th><th>Day</th><th>Room</th><th>Select</th></tr></thead><tbody></tbody></table>');
             const $tableBody = $table.find('tbody');
 
@@ -733,10 +915,10 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
                 },
                 EnrollingCourses: Array.from(selectedCourses).map(course => ({
                     CourseCode: course.code,
-                    ScheduleId: parseInt(course.scheduleDetails) 
+                    ScheduleId: parseInt(course.scheduleDetails)
                 }))
             };
-            
+
             console.log('Form data:', formData);
 
             // Submit via AJAX
@@ -773,8 +955,6 @@ Layout = "~/Views/Shared/StudentHeader.cshtml";
                 }
             });
         });
-        
-        
     });
 </script>
 }

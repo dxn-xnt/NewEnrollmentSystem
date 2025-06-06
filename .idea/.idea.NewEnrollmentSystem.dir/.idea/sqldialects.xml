@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SqlDialectMappings">
+    <file url="file://$PROJECT_DIR$/Controllers/AccountController.cs" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/Controllers/AddCourseController.cs" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/Controllers/AdminController.cs" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/Controllers/CourseController.cs" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/Controllers/CourseManagementController.cs" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/Controllers/CurriculumController.cs" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/Controllers/EnrollmentController.cs" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/Controllers/Service/BaseControllerServices.cs" dialect="GenericSQL" />
+    <file url="file://$PROJECT_DIR$/Controllers/StudentController.cs" dialect="GenericSQL" />
+  </component>
+</project>

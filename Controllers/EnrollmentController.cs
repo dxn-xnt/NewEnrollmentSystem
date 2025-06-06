@@ -230,7 +230,7 @@ namespace Enrollment_System.Controllers
             }
         }
 
-       [HttpGet]
+        [HttpGet]
         [Route("/Admin/Enrollment/GetCurrentEnrollmentPeriod")]
         public ActionResult GetCurrentEnrollmentPeriod()
         {

@@ -16,6 +16,58 @@
     @Scripts.Render("~/bundles/modernizr")
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .input-bar select {
+            font-family: 'Montserrat', sans-serif;
+            border: 1px solid black;
+            box-sizing: border-box;
+            height: 30px;
+            margin-top: 2px;
+            width: 100%;
+            max-width: 100%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Style for the dropdown options */
+        .input-bar select option {
+            font-family: 'Montserrat', sans-serif;
+            padding: 8px;
+            background-color: white;
+            color: black;
+        }
+        
+        .input-bar select option {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* Selected option style */
+        .input-bar select option:checked {
+            background-color: #FE7743; /* Your button color */
+            color: white;
+        }
+
+        /* Focus state */
+        .input-bar select:focus {
+            outline: none;
+            border-color: black;
+        }
+
+        /* IE compatibility */
+        .input-bar select::-ms-expand {
+            display: none;
+        }
+        
+       
+        .input-bar select option {
+            color: black;
+        }
+        
+    </style>
 </head>
 <body>
 <section class="register-section">
@@ -28,11 +80,26 @@
     <div class="student-form">
         <div id="signupForm">
             <h1>Create Student Account</h1>
-
-            <div class="input-bar">
-                @Html.Label("StudentID", "Student ID", new { @class = "form-label" })
-                @Html.TextBox("StudentID", null, new { @class = "form-control", placeholder = "Student ID" })
-                <p class="error-label">Incorrect Password</p>
+            <div class="fields-grid">
+                <div class="input-bar">
+                    @Html.Label("StudentID", "Student ID", new { @class = "form-label" })
+                    @Html.TextBox("StudentID", null, new { @class = "form-control", placeholder = "Student ID" })
+                    <p class="error-label">Incorrect Password</p>
+                </div>
+                <div class="input-bar">
+                    @Html.Label("ProgramCode", "Program", new { @class = "form-label" })
+                    @{
+                        var programs = ViewBag.Programs as List<Enrollment_System.Models.Program>;
+                        var programList = programs != null && programs.Count > 0 
+                            ? new SelectList(programs, "Code", "Title")
+                            : new SelectList(new List<SelectListItem> { new SelectListItem { Text = "No programs available", Value = "" } }, "Value", "Text");
+                    }
+                    @Html.DropDownList("ProgramCode", programList, "Select Program", new { 
+                        @class = "form-select",
+                        @required = "required"
+                    })
+                    <p class="error-label" id="program-error" style="display: none;">Please select a program</p>
+                </div>
             </div>
 
             <div class="input-bar">
@@ -101,6 +168,93 @@
     </div>
 </section>
 <script src="~/Scripts/JQuery/jquery.js"></script>
-<script src="~/Scripts/MyScript/SignUp.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#submitButton').click(function (e) {
+            e.preventDefault(); // Add this to prevent form submission
+            $('.input-error').removeClass('input-error');
+
+            // Validate Program is selected
+            if (!$('#ProgramCode').val()) {
+                Swal.fire('Error', 'Please select a program', 'error');
+                $('#Program').addClass('input-error').focus();
+                return;
+            }
+
+            // Reset errors
+            $('.error-label').hide();
+
+            // Validate Program selection
+            if (!$('#ProgramCode').val()) {
+                $('#program-error').show();
+                $('#Program').addClass('input-error').focus();
+                return;
+            }
+
+            // Password validation
+            if ($('#Password').val() !== $('#ConfirmPassword').val()) {
+                Swal.fire('Error', 'Passwords do not match', 'error');
+                $('#ConfirmPassword').addClass('input-error').focus();
+                return;
+            }
+
+            const student = {
+                Id: parseInt($('#StudentID').val()) || 0,
+                Program: $('#ProgramCode').val(),
+                LastName: $('#LastName').val(),
+                FirstName: $('#FirstName').val(),
+                MiddleName: $('#MiddleName').val(),
+                Birthdate: $('#Birthdate').val(),
+                Contact: $('#Contact').val(),
+                Email: $('#Email').val(),
+                HomeAddress: $('#HomeAddress').val(),
+                Password: $('#Password').val()
+            };
+
+            console.log('Submitting student:', student);
+
+            $.ajax({
+                type: "POST",
+                url: '/Account/SignUp',
+                contentType: 'application/json',
+                data: JSON.stringify(student),
+                success: function (response) {
+                    if (response.mess === 1) {
+                        Swal.fire({
+                            title: 'Success!',
+                            text: response.message,
+                            icon: 'success',
+                            confirmButtonText: 'OK',
+                            timer: 2000,
+                            timerProgressBar: true,
+                            willClose: () => {
+                                window.location.href = response.redirectUrl;
+                            }
+                        });
+                    } else if (response.mess === 2 || response.mess === 3) {
+                        Swal.fire({
+                            title: 'Error',
+                            text: response.error,
+                            icon: 'error',
+                            confirmButtonText: 'Try Again'
+                        });
+                        $('#' + response.field).addClass('input-error').focus();
+                    } else {
+                        Swal.fire({
+                            title: 'Error',
+                            text: response.earror || "Submission failed.",
+                            icon: 'error',
+                            confirmButtonText: 'Try Again'
+                        });
+                    }
+                },
+                error: function (xhr) {
+                    console.error('Error:', xhr.responseText);
+                    Swal.fire('Error', xhr.responseJSON?.error || "Submission failed", 'error');
+                }
+            });
+        });
+    });
+</script>
 </body>
 </html>

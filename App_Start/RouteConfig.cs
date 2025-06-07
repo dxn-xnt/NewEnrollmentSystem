@@ -149,6 +149,11 @@ namespace Enrollment_System
                 defaults: new { controller = "Student", action = "GetAvailableCourse" }
             ); 
             routes.MapRoute(
+                name: "StudentSectionCourseRoute",
+                url: "Student/Enrollment/GetSectionCourse",
+                defaults: new { controller = "Student", action = "GetSectionCourse" }
+            ); 
+            routes.MapRoute(
                 name: "StudentScheduleRoute",
                 url: "Student/Schedule",
                 defaults: new { controller = "Student", action = "Schedule" }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Web.Mvc;
+using Enrollment_System.Controllers.Service;
 using Npgsql;
 using Enrollment_System.Models;
 
@@ -11,6 +12,12 @@ namespace Enrollment_System.Controllers
     public class StudentController : Controller
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["DbConnection"].ConnectionString;
+        private readonly BaseControllerServices _baseController;
+
+        public StudentController(BaseControllerServices baseController)
+        {
+            _baseController = baseController;
+        }
         
         public int Id = 0;
         public ActionResult Enrollment()
@@ -39,13 +46,10 @@ namespace Enrollment_System.Controllers
                 }
 
                 // Load programs for dropdown
-                var programs = GetProgramsFromDatabase();
-                ViewBag.Programs = programs;
-                ViewBag.AcademicYears = GetAcademicYearsFromDatabase();
-                ViewBag.YearLevels = GetYearLevelFromDatabase();
-                ViewBag.Semesters = GetSemesterFromDatabase();
-                ViewBag.Prerequisites = GetPrerequisitesFromDatabase();
-                ViewBag.Courses = GetCoursesFromDatabase();
+                ViewBag.YearLevels = _baseController.GetYearLevelFromDatabase();
+                ViewBag.Prerequisites = _baseController.GetPrerequisitesFromDatabase();
+                ViewBag.Courses = _baseController.GetCoursesFromDatabase();
+                ViewBag.BlockSections = _baseController.GetBlockSectionsFromDatabase();
                 return View("~/Views/Student/StudentEnroll.cshtml", student);
             }
             catch (Exception ex)
@@ -302,7 +306,6 @@ namespace Enrollment_System.Controllers
                 return Json(new { success = false, message = ex.Message }, JsonRequestBehavior.AllowGet);
             }
         }
-        
         [HttpGet]
         [Route("/Student/Enrollment/GetAvailableCourse")]
         public ActionResult GetAvailableCourse(int yearLevel, int semesterId, string progCode, string ayCode, string curCode)
@@ -457,7 +460,145 @@ namespace Enrollment_System.Controllers
                 }, JsonRequestBehavior.AllowGet);
             }
         }
+        
+        [HttpGet]
+        [Route("/Student/Enrollment/GetSectionCourse")]
+        public ActionResult GetSectionCourse(string sectionCode)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(sectionCode))
+                {
+                    return Json(new { 
+                        success = false,
+                        message = "Section code is required"
+                    }, JsonRequestBehavior.AllowGet);
+                }
 
+                using (var db = new NpgsqlConnection(_connectionString))
+                {
+                    db.Open();
+                    
+                    // Modified query to filter by section code
+                    var cmd = new NpgsqlCommand(@"
+                        SELECT 
+                            c.CRS_CODE AS Code,
+                            c.CRS_TITLE AS Title,
+                            c.CRS_UNITS AS Units,
+                            c.CRS_LEC AS LecHours,
+                            c.CRS_LAB AS LabHours,
+                            ct.CTG_NAME AS CategoryName,
+                            ct.CTG_CODE AS CategoryCode,
+                            s.SCHD_ID AS ScheduleId,
+                            (
+                                SELECT ARRAY_AGG(p.PREQ_CRS_CODE)
+                                FROM PREREQUISITE p
+                                WHERE p.CRS_CODE = c.CRS_CODE
+                            ) AS Prerequisites,
+                            ts.TSL_DAY AS Day,
+                            ts.TSL_START_TIME AS StartTime,
+                            ts.TSL_END_TIME AS EndTime,
+                            r.ROOM_CODE AS RoomNumber,
+                            p.PROF_NAME AS InstructorName,
+                            bs.BSEC_NAME AS SectionName
+                        FROM COURSE c
+                        INNER JOIN SCHEDULE s ON c.CRS_CODE = s.CRS_CODE
+                        INNER JOIN BLOCK_SECTION bs ON s.BSEC_CODE = bs.BSEC_CODE
+                        LEFT JOIN COURSE_CATEGORY ct ON c.CTG_CODE = ct.CTG_CODE
+                        LEFT JOIN TIME_SLOT ts ON s.SCHD_ID = ts.SCHD_ID
+                        LEFT JOIN ROOM r ON s.ROOM_ID = r.ROOM_ID
+                        LEFT JOIN PROFESSOR p ON s.PROF_ID = p.PROF_ID
+                        WHERE bs.BSEC_CODE = @SectionCode
+                        ORDER BY c.CRS_CODE, ts.TSL_DAY, ts.TSL_START_TIME", db);
+
+                    cmd.Parameters.AddWithValue("@SectionCode", sectionCode);
+
+                    var courses = new List<dynamic>();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            courses.Add(new
+                            {
+                                Code = reader["Code"].ToString(),
+                                Title = reader["Title"].ToString(),
+                                Units = Convert.ToInt32(reader["Units"]),
+                                LecHours = Convert.ToInt32(reader["LecHours"]),
+                                LabHours = Convert.ToInt32(reader["LabHours"]),
+                                CategoryName = reader["CategoryName"].ToString(),
+                                CategoryCode = reader["CategoryCode"].ToString(),
+                                Prerequisites = reader["Prerequisites"] as string[] ?? Array.Empty<string>(),
+                                ScheduleId = reader.IsDBNull(reader.GetOrdinal("ScheduleId")) ? 0 : Convert.ToInt32(reader["ScheduleId"]),
+                                Day = reader.IsDBNull(reader.GetOrdinal("Day")) ? null : reader["Day"].ToString(),
+                                StartTime = reader.IsDBNull(reader.GetOrdinal("StartTime")) ? TimeSpan.Zero : (TimeSpan)reader["StartTime"],
+                                EndTime = reader.IsDBNull(reader.GetOrdinal("EndTime")) ? TimeSpan.Zero : (TimeSpan)reader["EndTime"],
+                                RoomNumber = reader.IsDBNull(reader.GetOrdinal("RoomNumber")) ? null : reader["RoomNumber"].ToString(),
+                                InstructorName = reader.IsDBNull(reader.GetOrdinal("InstructorName")) ? null : reader["InstructorName"].ToString(),
+                                SectionName = reader.IsDBNull(reader.GetOrdinal("SectionName")) ? null : reader["SectionName"].ToString()
+                            });
+                        }
+                    }
+
+                    // Group by course and format times (same as before)
+                    var groupedCourses = courses
+                        .GroupBy(c => c.Code)
+                        .Select(g => new
+                        {
+                            Category = g.First().CategoryName,
+                            Code = g.Key,
+                            LabHours = g.First().LabHours,
+                            LecHours = g.First().LecHours,
+                            Prerequisites = g.First().Prerequisites,
+                            Title = g.First().Title,
+                            Units = g.First().Units,
+                            ScheduleDetails = g.Where(x => x.ScheduleId != 0)
+                                            .GroupBy(s => s.ScheduleId)
+                                            .Select(sg => new
+                                            {
+                                                InstructorName = sg.First().InstructorName ?? "TBA",
+                                                RoomNumber = sg.First().RoomNumber ?? "TBA",
+                                                ScheduleId = sg.Key,
+                                                SectionName = sg.First().SectionName ?? "TBA",
+                                                TimeSlots = sg.Select(s => new
+                                                {
+                                                    Day = s.Day,
+                                                    EndTime = new { 
+                                                        Hours = s.EndTime.Hours,
+                                                        Minutes = s.EndTime.Minutes
+                                                    },
+                                                    ScheduleId = s.ScheduleId,
+                                                    StartTime = new {
+                                                        Hours = s.StartTime.Hours,
+                                                        Minutes = s.StartTime.Minutes
+                                                    }
+                                                })
+                                                .OrderBy(s => s.Day)
+                                                .ThenBy(s => s.StartTime.Hours)
+                                                .ThenBy(s => s.StartTime.Minutes)
+                                                .ToList()
+                                            })
+                                            .ToList()
+                        })
+                        .OrderBy(c => c.Code)
+                        .ToList();
+
+                    return Json(new
+                    {
+                        success = true,
+                        data = groupedCourses
+                    }, JsonRequestBehavior.AllowGet);
+                }
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "An error occurred while retrieving section courses",
+                    error = ex.Message
+                }, JsonRequestBehavior.AllowGet);
+            }
+        }
         private Student GetStudentFromDatabase(int studentId)
         {
             using (var conn = new NpgsqlConnection(_connectionString))
@@ -505,163 +646,7 @@ namespace Enrollment_System.Controllers
             }
             return null; // Return null if no student found
         }
-        
-        private List<Course> GetCoursesFromDatabase()
-        {
-            var courses = new List<Course>();
-
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (var cmd = new NpgsqlCommand("SELECT \"crs_code\", \"crs_title\", \"crs_units\", \"crs_lec\", \"crs_lab\", \"ctg_code\" FROM \"course\"", conn))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            courses.Add(new Course
-                            {
-                                Code = reader.GetString(0),
-                                Title = reader.GetString(1),
-                                Units = reader.GetInt32(2),
-                                LecHours = reader.GetInt32(3),
-                                LabHours = reader.GetInt32(4),
-                                CategoryCode = reader.GetString(5)
-                            });
-                        }
-                    }
-                }
-            }
-
-            return courses;
-        }
-        
-        private List<Prerequisite> GetPrerequisitesFromDatabase()
-        {
-            var prerequisites = new List<Prerequisite>();
-
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (var cmd = new NpgsqlCommand("SELECT \"crs_code\", \"preq_crs_code\" FROM \"prerequisite\"", conn))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            prerequisites.Add(new Prerequisite
-                            {
-                                CourseCode = reader.GetString(0),
-                                PrerequisiteCourseCode = reader.GetString(1)
-                            });
-                        }
-                    }
-                }
-            }
-
-            return prerequisites;
-        }
-
-        private List<Program> GetProgramsFromDatabase()
-        {
-            var programs = new List<Program>();
-
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (var cmd = new NpgsqlCommand("SELECT \"prog_code\", \"prog_title\" FROM \"program\"", conn))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            programs.Add(new Program
-                            {
-                                Code = reader.GetString(0),
-                                Title = reader.GetString(1)
-                            });
-                        }
-                    }
-                }
-            }
-            return programs;
-        }
-        private List<AcademicYear> GetAcademicYearsFromDatabase()
-        {
-            var academicYears = new List<AcademicYear>();
-
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (var cmd = new NpgsqlCommand("SELECT \"ay_code\", \"ay_start_year\", \"ay_end_year\" FROM \"academic_year\"", conn))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            academicYears.Add(new AcademicYear
-                            {
-                                Code = reader.GetString(0),
-                                StartYear = reader.GetInt16(1),
-                                EndYear = reader.GetInt16(2),
-                            });
-                        }
-                    }
-                }
-            }
-
-            return academicYears;
-        }
-        private List<YearLevel> GetYearLevelFromDatabase()
-        {
-            var yearLevel = new List<YearLevel>();
-
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (var cmd = new NpgsqlCommand("SELECT \"yrl_id\", \"yrl_title\" FROM \"year_level\" ", conn))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            yearLevel.Add(new YearLevel
-                            {
-                                Id = reader.GetInt16(0),
-                                Title = reader.GetString(1),
-                            });
-                        }
-                    }
-                }
-            }
-
-            return yearLevel;
-        }
-        private List<Semester> GetSemesterFromDatabase()
-        {
-            var semesters = new List<Semester>();
-
-            using (var conn = new NpgsqlConnection(_connectionString))
-            {
-                conn.Open();
-                using (var cmd = new NpgsqlCommand("SELECT \"sem_id\", \"sem_name\" FROM \"semester\"", conn))
-                {
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            semesters.Add(new Semester
-                            {
-                                Id = reader.GetInt16(0),
-                                Name = reader.GetString(1)
-                            });
-                        }
-                    }
-                }
-            }
-
-            return semesters;
-        }
+       
         public ActionResult Dashboard()
         {
             return View("~/Views/Student/Dashboard.cshtml");

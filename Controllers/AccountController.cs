@@ -3,6 +3,7 @@ using System.Web.Mvc;
 using Enrollment_System.Models;
 using Npgsql;
 using System.Configuration;
+using Enrollment_System.Controllers.Service;
 using Enrollment_System.Utilities;
 
 namespace Enrollment_System.Controllers
@@ -10,10 +11,18 @@ namespace Enrollment_System.Controllers
     public class AccountController : Controller
     {
         private readonly string _connectionString = ConfigurationManager.ConnectionStrings["DbConnection"].ConnectionString;
+        
+        private readonly BaseControllerServices _baseController;
 
+        public AccountController(BaseControllerServices baseController)
+        {
+            _baseController = baseController;
+        }
+        
         [HttpGet]
         public ActionResult SignUp()
         {
+            ViewBag.Programs = _baseController.GetProgramsFromDatabase();
             return View("~/Views/Account/SignUp.cshtml");
         }
         
@@ -44,7 +53,8 @@ namespace Enrollment_System.Controllers
                     string.IsNullOrEmpty(student.HomeAddress) || 
                     string.IsNullOrEmpty(student.Contact) ||
                     string.IsNullOrEmpty(student.Email) || 
-                    string.IsNullOrEmpty(student.Password))
+                    string.IsNullOrEmpty(student.Password) ||
+                    string.IsNullOrEmpty(student.Program)) 
                 {
                     return Json(new { mess = 0, error = "All required fields must be filled." }, JsonRequestBehavior.AllowGet);
                 }
@@ -83,10 +93,11 @@ namespace Enrollment_System.Controllers
                     // Insert student record
                     using (var cmd = new NpgsqlCommand(@"
                         INSERT INTO STUDENT 
-                        (STUD_ID, STUD_LNAME, STUD_FNAME, STUD_MNAME, STUD_DOB, STUD_CONTACT, STUD_EMAIL, STUD_HOME_ADDRESS, PASSWORD_HASH)
-                        VALUES (@studentId, @lastName, @firstName, @middleName, @birthDate, @contactNo, @emailAddress, @address, @password)", db))
+                        (STUD_ID, PROG_CODE, STUD_LNAME, STUD_FNAME, STUD_MNAME, STUD_DOB, STUD_CONTACT, STUD_EMAIL, STUD_HOME_ADDRESS, PASSWORD_HASH)
+                        VALUES (@studentId, @program, @lastName, @firstName, @middleName, @birthDate, @contactNo, @emailAddress, @address, @password)", db))
                     {
                         cmd.Parameters.AddWithValue("@studentId", student.Id);
+                        cmd.Parameters.AddWithValue("@program", string.IsNullOrEmpty(student.Program) ? DBNull.Value : (object)student.Program);
                         cmd.Parameters.AddWithValue("@lastName", student.LastName);
                         cmd.Parameters.AddWithValue("@firstName", student.FirstName);
                         cmd.Parameters.AddWithValue("@middleName", string.IsNullOrEmpty(student.MiddleName) ? DBNull.Value : (object)student.MiddleName);

@@ -1,32 +1,54 @@
 $(document).ready(function () {
     $('#submitButton').click(function (e) {
+        e.preventDefault(); // Add this to prevent form submission
         $('.input-error').removeClass('input-error');
 
-        // Client-side validation
+        // Validate Program is selected
+        if (!$('#ProgramCode').val()) {
+            Swal.fire('Error', 'Please select a program', 'error');
+            $('#Program').addClass('input-error').focus();
+            return;
+        }
+
+        // Reset errors
+        $('.error-label').hide();
+
+        // Validate Program selection
+        if (!$('#ProgramCode').val()) {
+            $('#program-error').show();
+            $('#Program').addClass('input-error').focus();
+            return;
+        }
+    
+        // Password validation
         if ($('#Password').val() !== $('#ConfirmPassword').val()) {
             Swal.fire('Error', 'Passwords do not match', 'error');
             $('#ConfirmPassword').addClass('input-error').focus();
             return;
         }
 
+        console.log('Program value:', $('#Program').val());
+        console.log('Program element:', $('#Program'));
+        
         const student = {
-            Id: parseInt($('#StudentID').val()),
+            Id: parseInt($('#StudentID').val()) || 0,
+            Program: $('#ProgramCode').val(),
             LastName: $('#LastName').val(),
             FirstName: $('#FirstName').val(),
             MiddleName: $('#MiddleName').val(),
-            Birthdate: $('#Birthdate').val(), 
+            Birthdate: $('#Birthdate').val(),
             Contact: $('#Contact').val(),
             Email: $('#Email').val(),
             HomeAddress: $('#HomeAddress').val(),
             Password: $('#Password').val()
         };
 
-        console.log('Submitting:', student); // Debugging
+        console.log('Submitting student:', student);
 
         $.ajax({
             type: "POST",
             url: '/Account/SignUp',
-            contentType: 'application/json; charset=utf-8',
+            contentType: 'application/json',
             data: JSON.stringify(student),
             success: function (response) {
                 if (response.mess === 1) {
@@ -60,13 +82,7 @@ $(document).ready(function () {
             },
             error: function (xhr) {
                 console.error('Error:', xhr.responseText);
-                let errorMsg = "Something went wrong during submission.";
-                try {
-                    const serverError = JSON.parse(xhr.responseText);
-                    errorMsg = serverError.error || serverError.message || errorMsg;
-                } catch (e) {}
-
-                Swal.fire('Error', errorMsg, 'error');
+                Swal.fire('Error', xhr.responseJSON?.error || "Submission failed", 'error');
             }
         });
     });
